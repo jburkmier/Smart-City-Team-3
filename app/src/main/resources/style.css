@@ -11,7 +11,7 @@
 
 .button {
     -fx-background-color: -accent-color;
-    -fx-text-fill: white;
+    -fx-text-fill: -text-color;
     -fx-background-radius: 8;
     -fx-padding: 10 20;
 }
@@ -34,4 +34,66 @@
     -fx-background-color: -accent-light-color;
     -fx-padding: 20px;
     -fx-alignment: center-left;
+}
+
+.login-page {
+    -fx-background-color: -primary-color;
+    -fx-padding: 32px;
+}
+
+.login-card {
+    -fx-background-color: -accent-light-color;
+    -fx-background-radius: 12;
+    -fx-padding: 30px;
+    -fx-max-width: 380px;
+}
+
+.login-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.login-form {
+    -fx-spacing: 8px;
+}
+
+.login-form .label {
+    -fx-font-weight: bold;
+}
+
+.login-field {
+    -fx-pref-width: 300px;
+    -fx-padding: 10px;
+    -fx-background-radius: 6;
+}
+
+.register-page {
+    -fx-background-color: -primary-color;
+    -fx-padding: 32px;
+}
+
+.register-card {
+    -fx-background-color: -accent-light-color;
+    -fx-background-radius: 12;
+    -fx-padding: 30px;
+    -fx-max-width: 380px;
+}
+
+.register-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.register-form {
+    -fx-spacing: 8px;
+}
+
+.register-form .label {
+    -fx-font-weight: bold;
+}
+
+.register-field {
+    -fx-pref-width: 300px;
+    -fx-padding: 10px;
+    -fx-background-radius: 6;
 }

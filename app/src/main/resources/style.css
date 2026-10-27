@@ -1,0 +1,25 @@
+.root {
+    -primary-color: #A0B9BF;
+    -secondary-color: #9DACB2;
+    -background-color: #949BA0;
+    -text-color: #243536;
+    -accent-light-color: #BCD4DE;
+    -accent-color: #A5CCD1;
+    -fx-background-color: -background-color;
+    -fx-font-family: "Arial";
+}
+
+.button {
+    -fx-background-color: -accent-color;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+}
+
+.button:hover {
+    -fx-background-color: -secondary-color;
+}
+
+.label {
+    -fx-text-fill: -text-color;
+}

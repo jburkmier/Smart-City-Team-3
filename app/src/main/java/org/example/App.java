@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+
 public class App extends Application {
 
     @Override
@@ -24,6 +25,7 @@ public class App extends Application {
         root.getChildren().add(button);
 
         Scene scene = new Scene(root, 400, 300);
+        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
         primaryStage.setTitle("Smart City Application");
         primaryStage.setScene(scene);

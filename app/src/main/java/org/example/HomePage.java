@@ -17,8 +17,12 @@ public class HomePage extends GridPane {
         Button loginButton = new Button("Login");
         loginButton.getStyleClass().add("button");
 
+        //Register button
+        Button registerButton = new Button("Register");
+        registerButton.getStyleClass().add("button");
+
         HBox buttons = new HBox(10);
-        buttons.getChildren().addAll(loginButton);
+        buttons.getChildren().addAll(loginButton,registerButton);
         buttons.setAlignment(Pos.CENTER_RIGHT);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

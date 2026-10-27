@@ -5,7 +5,7 @@
     -text-color: #243536;
     -accent-light-color: #BCD4DE;
     -accent-color: #A5CCD1;
-    -fx-background-color: -background-color;
+    -fx-background-color: -primary-color;
     -fx-font-family: "Arial";
 }
 
@@ -22,4 +22,16 @@
 
 .label {
     -fx-text-fill: -text-color;
+}
+
+.page-title{
+    -fx-text-fill: -text-color;
+    -fx-font-size: 28px; 
+    -fx-font-weight: bold;
+}
+
+.header{
+    -fx-background-color: -accent-light-color;
+    -fx-padding: 20px;
+    -fx-alignment: center-left;
 }

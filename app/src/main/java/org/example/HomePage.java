@@ -14,15 +14,12 @@ public class HomePage extends GridPane {
         smartCity.getStyleClass().add("page-title");
 
         //Login button
-        Button loginButton = new Button("Login");
-        loginButton.getStyleClass().add("button");
-
-        //Register button
-        Button registerButton = new Button("Register");
-        registerButton.getStyleClass().add("button");
+        Button loginRegisterButton = new Button("Login or Register");
+        loginRegisterButton.getStyleClass().add("button");
+        loginRegisterButton.setOnAction(event -> getScene().setRoot(new LoginPage()));
 
         HBox buttons = new HBox(10);
-        buttons.getChildren().addAll(loginButton,registerButton);
+        buttons.getChildren().addAll(loginRegisterButton);
         buttons.setAlignment(Pos.CENTER_RIGHT);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

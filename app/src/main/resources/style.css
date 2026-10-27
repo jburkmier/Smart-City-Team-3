@@ -11,7 +11,7 @@
 
 .button {
     -fx-background-color: -accent-color;
-    -fx-text-fill: white;
+    -fx-text-fill: -text-color;
     -fx-background-radius: 8;
     -fx-padding: 10 20;
 }

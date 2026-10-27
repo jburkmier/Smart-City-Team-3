@@ -33,6 +33,8 @@ public class LoginPage extends GridPane {
         loginButton.getStyleClass().add("button");
         registerButton.getStyleClass().add("button");
         backButton.getStyleClass().add("button");
+
+        registerButton.setOnAction(event -> getScene().setRoot(new RegisterPage()));
         backButton.setOnAction(event -> getScene().setRoot(new HomePage()));
 
         VBox loginCard = new VBox(18, title, form, loginButton, registerButton, backButton);

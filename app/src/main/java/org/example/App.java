@@ -12,7 +12,7 @@ public class App extends Application {
         // Display HomePage instead of the old button
         HomePage homePage = new HomePage();
 
-        Scene scene = new Scene(homePage, 400, 300);
+        Scene scene = new Scene(homePage, 600, 500);
 
         scene.getStylesheets().add(
             getClass().getResource("/style.css").toExternalForm()

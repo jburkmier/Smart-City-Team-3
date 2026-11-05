@@ -5,10 +5,6 @@ plugins {
     alias(libs.plugins.javafx)
 }
 
-repositories {
-    mavenCentral()
-}
-
 javafx {
     version = libs.versions.javafx.get()
     modules = ['javafx.controls']

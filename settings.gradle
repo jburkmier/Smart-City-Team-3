@@ -12,3 +12,12 @@ plugins {
 
 rootProject.name = 'SmartCityTeam3'
 include('common', 'server', 'client')
+
+// Repositories for every module are declared once, here.
+// FAIL_ON_PROJECT_REPOS makes the build fail if a module declares its own.
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        mavenCentral()
+    }
+}

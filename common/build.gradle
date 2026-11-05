@@ -1,0 +1,19 @@
+// Shared DTO records and enums used by both the client and the server. No logic, no I/O.
+
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation libs.junit
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(18)
+    }
+}

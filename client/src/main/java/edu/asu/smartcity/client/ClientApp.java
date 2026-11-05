@@ -1,10 +1,11 @@
-package org.example;
+package edu.asu.smartcity.client;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import edu.asu.smartcity.client.view.HomePage;
 
-public class App extends Application {
+public class ClientApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {

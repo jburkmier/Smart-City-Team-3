@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = 'SmartCityTeam3'
-include('app')
+include('common', 'server', 'client')

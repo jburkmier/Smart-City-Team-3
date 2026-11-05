@@ -1,0 +1,32 @@
+// Javalin REST server: controllers, services, design patterns, DAOs, and the MySQL connection.
+
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':common')
+    implementation libs.javalin
+    implementation libs.jackson.databind
+    implementation libs.jackson.jsr310
+    implementation libs.mysql.connector
+    implementation libs.jbcrypt
+    runtimeOnly libs.slf4j.simple
+
+    testImplementation libs.junit
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(18)
+    }
+}
+
+application {
+    mainClass = 'edu.asu.smartcity.server.ServerApp'
+}
+
+// Run from the repo root so the server finds db.properties there.
+tasks.named('run') {
+    workingDir = rootDir
+}

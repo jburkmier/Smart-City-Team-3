@@ -1,4 +1,4 @@
-package org.example;
+package edu.asu.smartcity.client.view;
 
 import javafx.scene.control.*;
 import javafx.scene.layout.*;

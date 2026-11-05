@@ -1,0 +1,6 @@
+# Copy this file to db.properties (same folder) and fill in your password.
+# db.properties is gitignored; never commit it.
+db.url=jdbc:mysql://localhost:3306/smartcity
+db.user=smartcity_app
+db.password=CHANGE_ME
+server.port=7070

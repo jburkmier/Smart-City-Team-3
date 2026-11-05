@@ -1,3 +1,7 @@
 .gradle/
 build/
 app/build/
+.idea/
+docs/*.pdf
+docs/*.docx
+db.properties

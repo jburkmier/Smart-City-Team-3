@@ -1,11 +1,11 @@
-// Javalin REST server: controllers, services, design patterns, DAOs, and the MySQL connection.
+// Javalin server: the REST API (controllers, services, design patterns, DAOs, MySQL)
+// and the web pages in src/main/resources/public.
 
 plugins {
     id 'application'
 }
 
 dependencies {
-    implementation project(':common')
     implementation libs.javalin
     implementation libs.jackson.databind
     implementation libs.jackson.jsr310

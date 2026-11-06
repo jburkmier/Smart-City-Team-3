@@ -8,6 +8,7 @@ import edu.asu.smartcity.server.dto.ErrorResponse;
 import edu.asu.smartcity.server.web.ApiException;
 import edu.asu.smartcity.server.web.HealthController;
 import io.javalin.Javalin;
+import io.javalin.http.NotFoundResponse;
 import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinJackson;
 import org.slf4j.Logger;
@@ -27,19 +28,35 @@ public class ServerApp {
     private static final Logger LOG = LoggerFactory.getLogger(ServerApp.class);
 
     public static void main(String[] args) {
-        // Fail at startup, not on the first request, if db.properties is missing.
-        DatabaseConnection.instance();
         createApp().start(PORT);
     }
 
-    /** Builds the Javalin app with every route and error handler. */
+    /**
+     * Builds the Javalin app: creates every object once, hands each one what it needs
+     * through its constructor, then registers the routes and error handlers.
+     */
     public static Javalin createApp() {
+        // Reads db.properties now, so a missing file stops startup instead of the first request.
+        DatabaseConnection database = DatabaseConnection.instance();
+        HealthController healthController = new HealthController(database);
+
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
             config.jsonMapper(new JavalinJackson(objectMapper(), false));
         });
 
-        app.get("/api/health", HealthController::health);
+        app.get("/api/health", healthController::health);
+
+        // Javalin throws NotFoundResponse when no route or page matches. Unknown /api paths get
+        // the api.md error format; missing pages keep Javalin's plain-text 404.
+        app.exception(NotFoundResponse.class, (e, ctx) -> {
+            ctx.status(404);
+            if (ctx.path().startsWith("/api/")) {
+                ctx.json(new ErrorResponse("NOT_FOUND", "No such endpoint."));
+            } else {
+                ctx.result(e.getMessage());
+            }
+        });
 
         app.exception(ApiException.class, (e, ctx) ->
                 ctx.status(e.status()).json(new ErrorResponse(e.code(), e.getMessage(), e.fields())));

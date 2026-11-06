@@ -16,6 +16,12 @@ public class UserDAO {
     private static final String COLUMNS =
             "user_id, name, email, password_hash, role_id, address, phone, department_id, skill";
 
+    private final DatabaseConnection database;
+
+    public UserDAO(DatabaseConnection database) {
+        this.database = database;
+    }
+
     /** Finds a user by email. The email must already be trimmed and lowercased. */
     public Optional<UserRecord> findByEmail(String email) throws SQLException {
         return findOne("SELECT " + COLUMNS + " FROM users WHERE email = ?", email);
@@ -26,7 +32,7 @@ public class UserDAO {
     }
 
     public boolean existsByEmail(String email) throws SQLException {
-        try (Connection conn = DatabaseConnection.instance().getConnection();
+        try (Connection conn = database.getConnection();
              PreparedStatement stmt = conn.prepareStatement("SELECT 1 FROM users WHERE email = ?")) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -43,7 +49,7 @@ public class UserDAO {
                       String address, String phone) throws SQLException {
         String sql = "INSERT INTO users (name, email, password_hash, role_id, address, phone) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.instance().getConnection();
+        try (Connection conn = database.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, name);
             stmt.setString(2, email);
@@ -60,7 +66,7 @@ public class UserDAO {
     }
 
     private Optional<UserRecord> findOne(String sql, Object param) throws SQLException {
-        try (Connection conn = DatabaseConnection.instance().getConnection();
+        try (Connection conn = database.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setObject(1, param);
             try (ResultSet rs = stmt.executeQuery()) {

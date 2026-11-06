@@ -3,9 +3,14 @@ package edu.asu.smartcity.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import edu.asu.smartcity.server.dao.UserDAO;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.ErrorResponse;
+import edu.asu.smartcity.server.service.AuthService;
+import edu.asu.smartcity.server.session.SessionManager;
 import edu.asu.smartcity.server.web.ApiException;
+import edu.asu.smartcity.server.web.AuthController;
+import edu.asu.smartcity.server.web.AuthGuard;
 import edu.asu.smartcity.server.web.HealthController;
 import io.javalin.Javalin;
 import io.javalin.http.NotFoundResponse;
@@ -38,7 +43,13 @@ public class ServerApp {
     public static Javalin createApp() {
         // Reads db.properties now, so a missing file stops startup instead of the first request.
         DatabaseConnection database = DatabaseConnection.instance();
+        SessionManager sessions = SessionManager.instance();
+        UserDAO userDAO = new UserDAO(database);
+        AuthService authService = new AuthService(userDAO, sessions);
+        AuthGuard authGuard = new AuthGuard(sessions);
+
         HealthController healthController = new HealthController(database);
+        AuthController authController = new AuthController(authService, authGuard);
 
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
@@ -46,6 +57,10 @@ public class ServerApp {
         });
 
         app.get("/api/health", healthController::health);
+        app.post("/api/auth/register", authController::register);
+        app.post("/api/auth/login", authController::login);
+        app.post("/api/auth/logout", authController::logout);
+        app.get("/api/me", authController::me);
 
         // Javalin throws NotFoundResponse when no route or page matches. Unknown /api paths get
         // the api.md error format; missing pages keep Javalin's plain-text 404.

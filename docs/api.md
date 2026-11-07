@@ -128,7 +128,7 @@ No auth.
   ```json
   { "token": "3f9c2a1e-8b7d-4c1a-9e2f-0a1b2c3d4e5f", "user": { /* UserDto */ } }
   ```
-  Server also updates `users.last_login_at` (used by the engagement report).
+  Starting in Part 3, the server also updates `users.last_login_at` (used by the engagement report). Part 1 does not update it.
 - `400 VALIDATION_FAILED` (missing fields) · `401 INVALID_CREDENTIALS`, message `"Invalid email or password."`
 
 Server flow: `UserDAO.findByEmail` → `BCrypt.checkpw` → `UserCreator` for the role (Factory) builds `Citizen`/`CityAdministrator`/`DepartmentManager`/`Worker` → `SessionManager.login(user)` returns the token.

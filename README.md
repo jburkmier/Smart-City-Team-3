@@ -15,6 +15,23 @@ SmartCity Hub is a web app: a Javalin server provides the REST API and serves th
  - `server/src/main/resources/public`: web pages (HTML, CSS, JavaScript)
  - `db/`: database schema and seed data
 
+## Getting started
+1. Set up MySQL, `db.properties`, and the demo data by following [docs/database-setup.md](docs/database-setup.md).
+2. `./gradlew :server:run` starts the server.
+3. Open http://localhost:7070 and log in with a demo account.
+
+## Demo accounts
+All passwords are `password123`.
+
+| Email | Role |
+|---|---|
+| citizen@smartcity.test | Citizen |
+| admin@smartcity.test | City Administrator |
+| manager@smartcity.test | Department Manager (Public Works) |
+| worker@smartcity.test | Worker (Public Works) |
+
+New accounts created on the Register page are always Citizens.
+
 ## Commands
   - `./gradlew build` builds the server and runs the tests
   - `./gradlew :server:run` starts the server, then open http://localhost:7070

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register - Smart City Application</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main class="card-page">
+        <div class="card">
+            <h1 class="card-title">Register</h1>
+
+            <p id="error" class="message message-error" role="alert" hidden></p>
+
+            <form class="form" id="register-form" novalidate>
+                <label for="name">Name</label>
+                <input class="field" id="name" type="text" autocomplete="name" maxlength="100"
+                       placeholder="Enter your full name">
+
+                <label for="email">Email</label>
+                <input class="field" id="email" type="email" autocomplete="email" maxlength="255"
+                       placeholder="Enter your email">
+
+                <label for="password">Password</label>
+                <input class="field" id="password" type="password" autocomplete="new-password" maxlength="72"
+                       placeholder="At least 8 characters">
+
+                <label for="confirm-password">Confirm Password</label>
+                <input class="field" id="confirm-password" type="password" autocomplete="new-password"
+                       maxlength="72" placeholder="Confirm your password">
+
+                <label for="address">Address (optional)</label>
+                <input class="field" id="address" type="text" autocomplete="street-address" maxlength="255"
+                       placeholder="Enter your address">
+
+                <label for="phone">Phone (optional)</label>
+                <input class="field" id="phone" type="tel" autocomplete="tel" maxlength="20"
+                       placeholder="Enter your phone number">
+
+                <button class="button" id="register-button" type="submit">Register</button>
+            </form>
+
+            <div class="links">
+                <a class="button" href="login.html">Back to Login</a>
+                <a class="button" href="index.html">Back to Home</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/register.js"></script>
+</body>
+</html>

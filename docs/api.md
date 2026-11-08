@@ -1,6 +1,6 @@
 # SmartCity Hub – REST API Contract
 
-This is the agreement between the JavaFX client and the Javalin server. Change it here first (and tell your teammate) before changing either side.
+This is the agreement between the web client (HTML/JavaScript pages in `server/src/main/resources/public`) and the Javalin REST API. Change it here first (and tell your teammate) before changing either side.
 
 | Increment | Due | Endpoints |
 |---|---|---|
@@ -16,9 +16,9 @@ This is the agreement between the JavaFX client and the Javalin server. Change i
 - **Format:** JSON, `camelCase` field names, `Content-Type: application/json`
 - **IDs:** integers
 - **Dates/times:** ISO-8601 local time strings, e.g. `"2026-11-05T18:00:00"`
-- **Enums:** uppercase strings (see [Enums](#9-enums)). Shared as Java enums in the `common` module.
+- **Enums:** uppercase strings (see [Enums](#9-enums)). Java enums on the server; the web client uses the same strings.
 - **Lists:** returned as plain JSON arrays. No pagination (data sets are small).
-- **DTOs:** every request/response body is a record in `common`. Domain classes (`Citizen`, `Request`, …) are never serialized directly, and **no response ever contains a password or password hash**.
+- **DTOs:** every request/response body is a Java record in the server's `dto` package. Domain classes (`Citizen`, `Request`, …) are never serialized directly, and **no response ever contains a password or password hash**.
 
 ### URL structure
 
@@ -40,8 +40,8 @@ This is the agreement between the JavaFX client and the Javalin server. Change i
    ```
 3. The server resolves the token through `SessionManager` (Singleton, `Map<token, SystemUser>`).
 4. Tokens live in server memory only. Logout or a server restart invalidates them.
-5. The client keeps the token in memory (`ClientSession`), never on disk.
-6. **Client rule:** any `401` response clears `ClientSession` and returns to the login screen.
+5. The web client keeps the token in `sessionStorage` (the `Session` object in `js/api.js`), which the browser clears when the tab closes. Never `localStorage` or cookies.
+6. **Client rule:** any `401` response (except a failed login) clears `Session` and returns to the login page. `js/api.js` does this automatically.
 
 ### Authorization
 
@@ -128,7 +128,7 @@ No auth.
   ```json
   { "token": "3f9c2a1e-8b7d-4c1a-9e2f-0a1b2c3d4e5f", "user": { /* UserDto */ } }
   ```
-  Server also updates `users.last_login_at` (used by the engagement report).
+  Starting in Part 3, the server also updates `users.last_login_at` (used by the engagement report). Part 1 does not update it.
 - `400 VALIDATION_FAILED` (missing fields) · `401 INVALID_CREDENTIALS`, message `"Invalid email or password."`
 
 Server flow: `UserDAO.findByEmail` → `BCrypt.checkpw` → `UserCreator` for the role (Factory) builds `Citizen`/`CityAdministrator`/`DepartmentManager`/`Worker` → `SessionManager.login(user)` returns the token.

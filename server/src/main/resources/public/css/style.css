@@ -1,0 +1,188 @@
+/* SmartCity Hub color scheme and layout (carried over from the JavaFX style.css). */
+
+:root {
+    --primary-color: #A0B9BF;
+    --secondary-color: #9DACB2;
+    --background-color: #949BA0;
+    --text-color: #243536;
+    --accent-light-color: #BCD4DE;
+    --accent-color: #A5CCD1;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+}
+
+/* Buttons (also used on links that act like buttons) */
+
+.button {
+    display: inline-block;
+    border: none;
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Home page */
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 20px;
+    background-color: var(--accent-light-color);
+}
+
+.page-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.content {
+    padding: 20px;
+}
+
+/* Login and Register pages */
+
+.card-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 32px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    width: 100%;
+    max-width: 380px;
+    padding: 30px;
+    border-radius: 12px;
+    background-color: var(--accent-light-color);
+}
+
+.card-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.form label {
+    font-weight: bold;
+}
+
+.field {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--secondary-color);
+    border-radius: 6px;
+    font: inherit;
+}
+
+/* Phones: tighter spacing so the card fits small screens */
+
+@media (max-width: 480px) {
+    .card-page {
+        padding: 16px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .page-title {
+        font-size: 22px;
+    }
+}
+
+/* Messages shown above forms and on the home page */
+
+.message {
+    width: 100%;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+.message-error {
+    background-color: #F4D3D3;
+    color: #7A1F1F;
+}
+
+.message-success {
+    background-color: #D5EBD9;
+    color: #1F5A2B;
+}
+
+.message-info {
+    background-color: var(--accent-light-color);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.form .button {
+    margin-top: 10px;
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Home page after login */
+
+.welcome {
+    margin: 0 0 4px;
+}
+
+.role {
+    margin: 0 0 20px;
+    font-weight: bold;
+}
+
+.nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.nav .button {
+    padding: 16px 20px;
+}

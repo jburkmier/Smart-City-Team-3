@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Log in - Smart City Application</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main class="card-page">
+        <div class="card">
+            <h1 class="card-title">Log in</h1>
+
+            <p id="notice" class="message message-success" hidden></p>
+            <p id="error" class="message message-error" role="alert" hidden></p>
+
+            <form class="form" id="login-form" novalidate>
+                <label for="email">Email</label>
+                <input class="field" id="email" type="email" autocomplete="username" placeholder="Enter your email">
+
+                <label for="password">Password</label>
+                <input class="field" id="password" type="password" autocomplete="current-password"
+                       placeholder="Enter your password">
+
+                <button class="button" id="login-button" type="submit">Login</button>
+            </form>
+
+            <div class="links">
+                <a class="button" href="register.html">Register</a>
+                <a class="button" href="index.html">Back to Home</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>

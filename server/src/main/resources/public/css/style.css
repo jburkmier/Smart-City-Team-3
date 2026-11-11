@@ -186,3 +186,90 @@ body {
 .nav .button {
     padding: 16px 20px;
 }
+
+.events-view {
+    display: grid;
+    gap: 18px;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: var(--accent-light-color);
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.section-heading h2,
+.event-card h3,
+.event-form h3 {
+    margin: 0;
+}
+
+.event-filters,
+.event-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    align-items: end;
+    gap: 12px;
+}
+
+.event-filters label,
+.event-form label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.event-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.event-card {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: white;
+}
+
+.event-card p {
+    margin: 0;
+}
+
+.event-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.event-form {
+    padding-top: 16px;
+    border-top: 1px solid var(--secondary-color);
+}
+
+.event-form h3,
+.event-form .links {
+    grid-column: 1 / -1;
+}
+
+.event-form textarea {
+    resize: vertical;
+}
+
+@media (max-width: 480px) {
+    .events-view {
+        padding: 14px;
+    }
+
+    .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

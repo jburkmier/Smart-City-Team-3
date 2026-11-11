@@ -250,6 +250,7 @@ body {
 }
 
 .event-form {
+    align-items: start;
     padding-top: 16px;
     border-top: 1px solid var(--secondary-color);
 }
@@ -262,6 +263,26 @@ body {
 .event-form textarea {
     resize: vertical;
 }
+
+.event-form input[type="datetime-local"] {
+    width: 100%;
+    min-width: 0;
+    padding-right: 4px;
+    padding-left: 4px;
+    font-size: 0.8rem;
+}
+
+.event-form input[name="price"]{
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.event-form input[name="price"]::-webkit-outer-spin-button,
+.event-form input[name="price"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 
 @media (max-width: 480px) {
     .events-view {

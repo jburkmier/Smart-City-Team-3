@@ -138,22 +138,9 @@ function createEventCard(event) {
 
     const actions = document.createElement('div');
     actions.className = 'event-actions';
-    const details = document.createElement('button');
-    details.type = 'button';
-    details.className = 'button';
-    details.textContent = 'Refresh details';
-    details.addEventListener('click', async () => {
-        try {
-            const latest = await Api.get('/events/' + event.id);
-            appendEventText(card, 'Event ID: ' + latest.id + ' · Created by user ' + latest.createdById);
-        } catch (error) {
-            showEventsError(error);
-        }
-    });
-    actions.appendChild(details);
 
     const user = Session.user();
-    if (user && user.role === 'CITIZEN' && !viewingRegistrations) {
+    if (user && user.role === 'CITIZEN') {
         const registration = document.createElement('button');
         registration.type = 'button';
         registration.className = 'button';

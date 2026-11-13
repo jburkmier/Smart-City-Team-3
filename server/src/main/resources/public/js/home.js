@@ -88,8 +88,18 @@ async function openRequests(user) {
             requestList.appendChild(empty);
             return;
         }
+        let departments = [];
+        let departmentLoadError = null;
+        if (user.role === 'CITY_ADMINISTRATOR' && requests.some(request => request.status === 'UNDER_REVIEW')) {
+            try {
+                departments = await Api.get('/departments');
+            } catch (departmentError) {
+                departmentLoadError = departmentError.message;
+            }
+        }
         for (const request of requests) {
-            requestList.appendChild(createRequestCard(request, user.role === 'CITY_ADMINISTRATOR'));
+            requestList.appendChild(createRequestCard(
+                request, user.role === 'CITY_ADMINISTRATOR', departments, departmentLoadError));
         }
     } catch (requestError) {
         error.textContent = requestError.message;
@@ -147,7 +157,7 @@ document.getElementById('close-requests').addEventListener('click', () => {
     requestsView.hidden = true;
 });
 
-function createRequestCard(request, canReview) {
+function createRequestCard(request, canReview, departments, departmentLoadError) {
     const card = document.createElement('article');
     card.className = 'request-card';
 
@@ -194,6 +204,58 @@ function createRequestCard(request, canReview) {
             }
         });
         card.appendChild(reviewButton);
+    }
+    if (canReview && request.status === 'UNDER_REVIEW') {
+        if (departmentLoadError) {
+            appendRequestText(card, 'Unable to load departments: ' + departmentLoadError);
+        } else {
+            const departmentSelect = document.createElement('select');
+            departmentSelect.className = 'field';
+            departmentSelect.required = true;
+            departmentSelect.setAttribute('aria-label', 'Assign request to department');
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Choose a department';
+            departmentSelect.appendChild(placeholder);
+            for (const department of departments) {
+                const option = document.createElement('option');
+                option.value = department.id;
+                option.textContent = department.name;
+                departmentSelect.appendChild(option);
+            }
+            card.appendChild(departmentSelect);
+
+            if (departments.length === 0) {
+                appendRequestText(card, 'No departments are available for assignment.');
+            }
+            const assignButton = document.createElement('button');
+            assignButton.className = 'button';
+            assignButton.type = 'button';
+            assignButton.textContent = 'Assign to department';
+            assignButton.disabled = departments.length === 0;
+            assignButton.addEventListener('click', async () => {
+                if (!departmentSelect.value) {
+                    departmentSelect.reportValidity();
+                    return;
+                }
+                assignButton.disabled = true;
+                error.hidden = true;
+                try {
+                    await Api.post('/requests/' + request.id + '/assign', {
+                        departmentId: Number(departmentSelect.value)
+                    });
+                    await openRequests(Session.user());
+                    requestMessage.className = 'message message-success';
+                    requestMessage.textContent = 'Request assigned to department.';
+                    requestMessage.hidden = false;
+                } catch (requestError) {
+                    error.textContent = requestError.message;
+                    error.hidden = false;
+                    assignButton.disabled = false;
+                }
+            });
+            card.appendChild(assignButton);
+        }
     }
     return card;
 }

@@ -92,6 +92,37 @@ public class RequestDAO {
         }
     }
 
+    public boolean departmentExists(int departmentId) throws SQLException {
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT 1 FROM departments WHERE department_id = ?")) {
+            stmt.setInt(1, departmentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /** Assigns a request only if it remains in the expected state and the department exists. */
+    public boolean assign(int requestId, RequestStatus expectedStatus, RequestStatus nextStatus, int departmentId)
+            throws SQLException {
+        String sql = """
+                UPDATE service_requests
+                SET status = ?, department_id = ?
+                WHERE request_id = ? AND status = ?
+                  AND EXISTS (SELECT 1 FROM departments WHERE department_id = ?)
+                """;
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nextStatus.name());
+            stmt.setInt(2, departmentId);
+            stmt.setInt(3, requestId);
+            stmt.setString(4, expectedStatus.name());
+            stmt.setInt(5, departmentId);
+            return stmt.executeUpdate() == 1;
+        }
+    }
+
     /** Returns all requests visible to an administrator, optionally filtered. */
     public List<RequestDto> findForAdministrator(RequestStatus status, RequestType type, Integer departmentId)
             throws SQLException {

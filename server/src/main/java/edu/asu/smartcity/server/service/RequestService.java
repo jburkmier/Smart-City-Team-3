@@ -5,6 +5,7 @@ import edu.asu.smartcity.server.domain.Request;
 import edu.asu.smartcity.server.domain.RequestState;
 import edu.asu.smartcity.server.domain.RequestTransitionException;
 import edu.asu.smartcity.server.domain.SubmittedState;
+import edu.asu.smartcity.server.dto.RequestAssignRequest;
 import edu.asu.smartcity.server.dto.RequestCreateRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
 import edu.asu.smartcity.server.model.RequestStatus;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Coordinates service-request submission and listing. */
+/** Coordinates service-request submission, listing, and workflow actions. */
 public class RequestService {
 
     private final RequestDAO requests;
@@ -65,6 +66,37 @@ public class RequestService {
                 () -> new SQLException("Reviewed request could not be loaded."));
     }
 
+    public RequestDto assign(int requestId, RequestAssignRequest assignment) throws SQLException {
+        if (assignment == null || assignment.departmentId() == null || assignment.departmentId() <= 0) {
+            throw new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.",
+                    Map.of("departmentId", "Must be a positive integer."));
+        }
+        int departmentId = assignment.departmentId();
+        if (!requests.departmentExists(departmentId)) {
+            throw invalidDepartment();
+        }
+
+        RequestDto current = findRequest(requestId);
+        Request request = new Request(current.citizenId(), current.type(), current.description(), current.location(),
+                RequestState.fromStatus(current.status()));
+        try {
+            request.assign();
+        } catch (RequestTransitionException e) {
+            throw invalidTransition(e);
+        }
+
+        if (!requests.assign(requestId, current.status(), request.getState().getStatus(), departmentId)) {
+            if (!requests.departmentExists(departmentId)) {
+                throw invalidDepartment();
+            }
+            RequestDto latest = findRequest(requestId);
+            throw new ApiException(409, "INVALID_TRANSITION",
+                    "Cannot assign a request that is " + latest.status() + ".");
+        }
+        return requests.findById(requestId).orElseThrow(
+                () -> new SQLException("Assigned request could not be loaded."));
+    }
+
     public List<RequestDto> findByCitizen(int citizenId) throws SQLException {
         return requests.findByCitizen(citizenId);
     }
@@ -94,5 +126,10 @@ public class RequestService {
 
     private static ApiException invalidTransition(RequestTransitionException e) {
         return new ApiException(409, "INVALID_TRANSITION", e.getMessage());
+    }
+
+    private static ApiException invalidDepartment() {
+        return new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.",
+                Map.of("departmentId", "Department does not exist."));
     }
 }

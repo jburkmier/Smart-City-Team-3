@@ -9,4 +9,9 @@ public class UnderReviewState extends RequestState {
     public RequestStatus getStatus() {
         return RequestStatus.UNDER_REVIEW;
     }
+
+    @Override
+    public RequestState assign() {
+        return new AssignedState();
+    }
 }

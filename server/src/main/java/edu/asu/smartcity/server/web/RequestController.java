@@ -2,6 +2,7 @@ package edu.asu.smartcity.server.web;
 
 import edu.asu.smartcity.server.domain.DepartmentManager;
 import edu.asu.smartcity.server.domain.SystemUser;
+import edu.asu.smartcity.server.dto.RequestAssignRequest;
 import edu.asu.smartcity.server.dto.RequestCreateRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
 import edu.asu.smartcity.server.model.RequestStatus;
@@ -35,6 +36,12 @@ public class RequestController {
     public void review(Context ctx) throws SQLException {
         guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
         ctx.json(requestService.review(requestId(ctx)));
+    }
+
+    /** POST /api/requests/{id}/assign: assigns an under-review request to a department. */
+    public void assign(Context ctx) throws SQLException {
+        guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
+        ctx.json(requestService.assign(requestId(ctx), readAssignment(ctx)));
     }
 
     /** GET /api/me/requests: the authenticated citizen's requests. */
@@ -74,6 +81,18 @@ public class RequestController {
             RequestCreateRequest request = ctx.bodyAsClass(RequestCreateRequest.class);
             if (request != null) {
                 return request;
+            }
+        } catch (Exception e) {
+            throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+        }
+        throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+    }
+
+    private static RequestAssignRequest readAssignment(Context ctx) {
+        try {
+            RequestAssignRequest assignment = ctx.bodyAsClass(RequestAssignRequest.class);
+            if (assignment != null) {
+                return assignment;
             }
         } catch (Exception e) {
             throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");

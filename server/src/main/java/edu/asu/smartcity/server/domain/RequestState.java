@@ -12,6 +12,11 @@ public abstract class RequestState {
                 "Cannot review a request that is " + getStatusName() + ".");
     }
 
+    public RequestState assign() {
+        throw new RequestTransitionException(
+                "Cannot assign a request that is " + getStatusName() + ".");
+    }
+
     public final String getStatusName() {
         return getStatus().name();
     }
@@ -19,6 +24,9 @@ public abstract class RequestState {
     public static RequestState fromStatus(RequestStatus status) {
         if (status == RequestStatus.SUBMITTED) {
             return new SubmittedState();
+        }
+        if (status == RequestStatus.UNDER_REVIEW) {
+            return new UnderReviewState();
         }
         return new StoredState(status);
     }

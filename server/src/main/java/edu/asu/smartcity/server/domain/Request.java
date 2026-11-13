@@ -47,6 +47,10 @@ public class Request {
         state = state.review();
     }
 
+    public void assign() {
+        state = state.assign();
+    }
+
     public String getStatusName() {
         return state.getStatusName();
     }

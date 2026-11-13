@@ -89,7 +89,7 @@ async function openRequests(user) {
             return;
         }
         for (const request of requests) {
-            requestList.appendChild(createRequestCard(request));
+            requestList.appendChild(createRequestCard(request, user.role === 'CITY_ADMINISTRATOR'));
         }
     } catch (requestError) {
         error.textContent = requestError.message;
@@ -147,7 +147,7 @@ document.getElementById('close-requests').addEventListener('click', () => {
     requestsView.hidden = true;
 });
 
-function createRequestCard(request) {
+function createRequestCard(request, canReview) {
     const card = document.createElement('article');
     card.className = 'request-card';
 
@@ -172,6 +172,28 @@ function createRequestCard(request) {
     }
     if (request.resolutionNotes) {
         appendRequestText(card, 'Resolution: ' + request.resolutionNotes);
+    }
+    if (canReview && request.status === 'SUBMITTED') {
+        const reviewButton = document.createElement('button');
+        reviewButton.className = 'button';
+        reviewButton.type = 'button';
+        reviewButton.textContent = 'Review request';
+        reviewButton.addEventListener('click', async () => {
+            reviewButton.disabled = true;
+            error.hidden = true;
+            try {
+                await Api.post('/requests/' + request.id + '/review');
+                await openRequests(Session.user());
+                requestMessage.className = 'message message-success';
+                requestMessage.textContent = 'Request moved to Under Review.';
+                requestMessage.hidden = false;
+            } catch (requestError) {
+                error.textContent = requestError.message;
+                error.hidden = false;
+                reviewButton.disabled = false;
+            }
+        });
+        card.appendChild(reviewButton);
     }
     return card;
 }

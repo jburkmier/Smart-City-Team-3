@@ -31,6 +31,12 @@ public class RequestController {
         ctx.status(201).json(requestService.create(readRequest(ctx), citizenId));
     }
 
+    /** POST /api/requests/{id}/review: moves a submitted request to under review. */
+    public void review(Context ctx) throws SQLException {
+        guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
+        ctx.json(requestService.review(requestId(ctx)));
+    }
+
     /** GET /api/me/requests: the authenticated citizen's requests. */
     public void mine(Context ctx) throws SQLException {
         int citizenId = guard.requireRole(ctx, Role.CITIZEN).getUserId();
@@ -89,6 +95,18 @@ public class RequestController {
         }
         throw new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.",
                 Map.of("departmentId", "Must be a positive integer."));
+    }
+
+    private static int requestId(Context ctx) {
+        try {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            if (id > 0) {
+                return id;
+            }
+        } catch (NumberFormatException ignored) {
+            // Invalid resource identifiers follow the API's 404 convention.
+        }
+        throw new ApiException(404, "NOT_FOUND", "Request not found.");
     }
 
     private static <E extends Enum<E>> E parseEnum(String value, Class<E> enumType, String field) {

@@ -9,4 +9,9 @@ public class SubmittedState extends RequestState {
     public RequestStatus getStatus() {
         return RequestStatus.SUBMITTED;
     }
+
+    @Override
+    public RequestState review() {
+        return new UnderReviewState();
+    }
 }

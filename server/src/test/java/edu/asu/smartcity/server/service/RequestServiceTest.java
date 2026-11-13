@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
@@ -19,6 +20,8 @@ public class RequestServiceTest {
 
     private static class FakeRequestDAO extends RequestDAO {
         private Request saved;
+        private RequestDto current;
+        private boolean conflictOnUpdate;
 
         FakeRequestDAO() {
             super(null);
@@ -30,6 +33,30 @@ public class RequestServiceTest {
             return new RequestDto(1, request.getType(), request.getDescription(), request.getLocation(),
                     RequestStatus.valueOf(request.getStatusName()), request.getCitizenId(), "Alex Rivera",
                     null, null, null, null, null, null, LocalDateTime.now(), LocalDateTime.now(), null);
+        }
+
+        @Override
+        public Optional<RequestDto> findById(int requestId) {
+            return Optional.ofNullable(current);
+        }
+
+        @Override
+        public boolean updateStatus(int requestId, RequestStatus expectedStatus, RequestStatus nextStatus) {
+            if (conflictOnUpdate) {
+                current = requestDto(nextStatus);
+                return false;
+            }
+            if (current == null || current.status() != expectedStatus) {
+                return false;
+            }
+            current = requestDto(nextStatus);
+            return true;
+        }
+
+        private RequestDto requestDto(RequestStatus status) {
+            return new RequestDto(2, RequestType.POTHOLE, "Large pothole", "5th St", status,
+                    7, "Alex Rivera", null, null, null, null, null, null,
+                    LocalDateTime.now(), LocalDateTime.now(), null);
         }
     }
 
@@ -78,6 +105,47 @@ public class RequestServiceTest {
         assertNull(requests.saved);
     }
 
+    @Test
+    public void reviewMovesSubmittedRequestToUnderReview() throws Exception {
+        requests.current = requests.requestDto(RequestStatus.SUBMITTED);
+
+        RequestDto response = service.review(2);
+
+        assertEquals(RequestStatus.UNDER_REVIEW, response.status());
+        assertEquals(RequestStatus.UNDER_REVIEW, requests.current.status());
+    }
+
+    @Test
+    public void reviewRejectsRequestInWrongState() {
+        requests.current = requests.requestDto(RequestStatus.UNDER_REVIEW);
+
+        ApiException error = expectReviewError();
+
+        assertEquals(409, error.status());
+        assertEquals("INVALID_TRANSITION", error.code());
+        assertEquals("Cannot review a request that is UNDER_REVIEW.", error.getMessage());
+    }
+
+    @Test
+    public void reviewReturnsNotFoundForUnknownRequest() {
+        ApiException error = expectReviewError();
+
+        assertEquals(404, error.status());
+        assertEquals("NOT_FOUND", error.code());
+    }
+
+    @Test
+    public void reviewReportsConcurrentStateChange() {
+        requests.current = requests.requestDto(RequestStatus.SUBMITTED);
+        requests.conflictOnUpdate = true;
+
+        ApiException error = expectReviewError();
+
+        assertEquals(409, error.status());
+        assertEquals("INVALID_TRANSITION", error.code());
+        assertEquals("Cannot review a request that is UNDER_REVIEW.", error.getMessage());
+    }
+
     private ApiException expectValidationError(RequestCreateRequest request) {
         try {
             service.create(request, 7);
@@ -87,6 +155,18 @@ public class RequestServiceTest {
             throw new AssertionError("Expected validation error but got " + e, e);
         }
         fail("Expected validation error");
+        return null;
+    }
+
+    private ApiException expectReviewError() {
+        try {
+            service.review(2);
+        } catch (ApiException e) {
+            return e;
+        } catch (Exception e) {
+            throw new AssertionError("Expected review error but got " + e, e);
+        }
+        fail("Expected review error");
         return null;
     }
 }

@@ -43,6 +43,10 @@ public class Request {
         this.state = state;
     }
 
+    public void review() {
+        state = state.review();
+    }
+
     public String getStatusName() {
         return state.getStatusName();
     }

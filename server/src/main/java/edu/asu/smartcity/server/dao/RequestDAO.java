@@ -71,8 +71,25 @@ public class RequestDAO {
                 List.of(citizenId));
     }
 
-    private Optional<RequestDto> findById(int requestId) throws SQLException {
+    public Optional<RequestDto> findById(int requestId) throws SQLException {
         return query(" WHERE r.request_id = ?", List.of(requestId)).stream().findFirst();
+    }
+
+    /** Changes status only if the request still has the status previously read by the caller. */
+    public boolean updateStatus(int requestId, RequestStatus expectedStatus, RequestStatus nextStatus)
+            throws SQLException {
+        String sql = """
+                UPDATE service_requests
+                SET status = ?
+                WHERE request_id = ? AND status = ?
+                """;
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nextStatus.name());
+            stmt.setInt(2, requestId);
+            stmt.setString(3, expectedStatus.name());
+            return stmt.executeUpdate() == 1;
+        }
     }
 
     /** Returns all requests visible to an administrator, optionally filtered. */

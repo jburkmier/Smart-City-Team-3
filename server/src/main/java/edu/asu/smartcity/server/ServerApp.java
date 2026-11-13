@@ -3,14 +3,17 @@ package edu.asu.smartcity.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import edu.asu.smartcity.server.dao.EventDAO;
 import edu.asu.smartcity.server.dao.UserDAO;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.ErrorResponse;
 import edu.asu.smartcity.server.service.AuthService;
+import edu.asu.smartcity.server.service.EventService;
 import edu.asu.smartcity.server.session.SessionManager;
 import edu.asu.smartcity.server.web.ApiException;
 import edu.asu.smartcity.server.web.AuthController;
 import edu.asu.smartcity.server.web.AuthGuard;
+import edu.asu.smartcity.server.web.EventController;
 import edu.asu.smartcity.server.web.HealthController;
 import io.javalin.Javalin;
 import io.javalin.http.NotFoundResponse;
@@ -50,6 +53,8 @@ public class ServerApp {
 
         HealthController healthController = new HealthController(database);
         AuthController authController = new AuthController(authService, authGuard);
+        EventDAO eventDAO = new EventDAO(database);
+        EventController eventController = new EventController(new EventService(eventDAO), authGuard);
 
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
@@ -57,6 +62,14 @@ public class ServerApp {
         });
 
         app.get("/api/health", healthController::health);
+        app.get("/api/events", eventController::list);
+        app.get("/api/events/{id}", eventController::get);
+        app.post("/api/events", eventController::create);
+        app.put("/api/events/{id}", eventController::update);
+        app.delete("/api/events/{id}", eventController::cancel);
+        app.post("/api/events/{id}/registration", eventController::register);
+        app.delete("/api/events/{id}/registration", eventController::unregister);
+        app.get("/api/me/registrations", eventController::registrations);
         app.post("/api/auth/register", authController::register);
         app.post("/api/auth/login", authController::login);
         app.post("/api/auth/logout", authController::logout);

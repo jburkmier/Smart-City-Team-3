@@ -29,5 +29,38 @@ INSERT INTO users (user_id, name, email, password_hash, role_id, address, phone,
   (3, 'Jordan Patel', 'manager@smartcity.test', '$2a$10$8ydu5YKEymL6mvnN46f9KOgroiosINhNhgWEz5fSxifV9iKs8wqYK', 3, NULL,          NULL,           1,    NULL),
   (4, 'Sam Lee',      'worker@smartcity.test',  '$2a$10$opvAWwRxqPcyh2eKisrvpu23XBBF/6d6x3L4uyf8U6p.6o5OvZo.W', 4, NULL,          NULL,           1,    'Road repair');
 
--- Part 2 adds: ~10 events across all categories/districts, ~8 service requests in every status, a second worker.
+-- Events span all six categories and five districts, with both free and paid options.
+-- Relative dates keep upcoming events current; past registrations demonstrate the
+-- difference between all registrations and the "Upcoming only" view.
+INSERT INTO events
+  (event_id, title, description, category, start_time, district, location_detail, price, created_by)
+VALUES
+  (1, 'River Park Cleanup', 'Help collect litter and restore the riverbank trails.',
+   'COMMUNITY_SERVICE', DATE_ADD(NOW(), INTERVAL 7 DAY), 'NORTH', 'River Park main entrance', 0.00, 2),
+  (2, 'Downtown 5K Fun Run', 'A community run through downtown streets. All fitness levels welcome.',
+   'SPORTS', DATE_ADD(NOW(), INTERVAL 10 DAY), 'DOWNTOWN', 'Civic Plaza', 15.00, 2),
+  (3, 'Neighborhood Safety Workshop', 'Learn practical emergency preparedness and home safety tips.',
+   'PUBLIC_SAFETY', DATE_ADD(NOW(), INTERVAL 5 DAY), 'EAST', 'East Community Center', 0.00, 2),
+  (4, 'Community Gardening Class', 'Learn seasonal planting and water-wise gardening basics.',
+   'EDUCATION', DATE_ADD(NOW(), INTERVAL 14 DAY), 'SOUTH', 'Southside Library', 5.00, 2),
+  (5, 'Urban Tree Planting Day', 'Plant shade trees and help improve the neighborhood canopy.',
+   'ENVIRONMENT', DATE_ADD(NOW(), INTERVAL 3 DAY), 'WEST', 'Westside Greenway', 0.00, 2),
+  (6, 'Cultural Food and Music Festival', 'Celebrate local cultures with food, music, and family activities.',
+   'CULTURAL', DATE_ADD(NOW(), INTERVAL 21 DAY), 'DOWNTOWN', 'Central Park stage', 12.00, 2),
+  (7, 'Youth Soccer Tournament', 'A friendly weekend tournament for local youth teams.',
+   'SPORTS', DATE_ADD(NOW(), INTERVAL 17 DAY), 'NORTH', 'Northside Sports Complex', 8.00, 2),
+  (8, 'Emergency Preparedness Fair', 'Meet first responders and explore preparedness resources.',
+   'PUBLIC_SAFETY', DATE_ADD(NOW(), INTERVAL 12 DAY), 'SOUTH', 'Fire Station 4', 0.00, 2),
+  (9, 'Water Conservation Seminar', 'Simple ways to reduce household water use in a desert climate.',
+   'EDUCATION', DATE_SUB(NOW(), INTERVAL 7 DAY), 'WEST', 'Westside Library', 0.00, 2),
+  (10, 'Community Mural Workshop', 'Help design a neighborhood mural with local artists.',
+   'CULTURAL', DATE_SUB(NOW(), INTERVAL 2 DAY), 'EAST', 'East Arts Center', 10.00, 2);
+
+-- Citizen Alex Rivera is registered for upcoming events and a past event.
+INSERT INTO event_registrations (user_id, event_id) VALUES
+  (1, 1),
+  (1, 4),
+  (1, 9);
+
+-- Part 2 adds: ~8 service requests in every status, a second worker.
 -- Part 3 adds: announcements (one EMERGENCY), transit routes, a couple of open flags.

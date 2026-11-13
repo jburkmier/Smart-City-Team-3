@@ -9,7 +9,7 @@ const ROLE_NAMES = {
 };
 
 const ROLE_FEATURES = {
-    CITIZEN: ['Events', 'Report an Issue', 'My Requests', 'Transit', 'Notifications'],
+    CITIZEN: ['Events', 'My Registrations', 'Report an Issue', 'My Requests', 'Transit', 'Notifications'],
     CITY_ADMINISTRATOR: ['Manage Events', 'Review Requests', 'Announcements', 'Flagged Content', 'Engagement Stats'],
     DEPARTMENT_MANAGER: ['Department Requests', 'Assign Tasks', 'Reports'],
     WORKER: ['My Tasks']
@@ -30,6 +30,14 @@ function showUser(user) {
         button.type = 'button';
         button.textContent = feature;
         button.addEventListener('click', () => {
+            if (feature === 'Events' || feature === 'Manage Events') {
+                openEvents(false);
+                return;
+            }
+            if (feature === 'My Registrations') {
+                openEvents(true);
+                return;
+            }
             notice.textContent = feature + ' is coming soon.';
             notice.hidden = false;
         });

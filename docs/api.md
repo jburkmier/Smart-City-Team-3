@@ -219,7 +219,7 @@ Query parameters (all optional, combinable):
 | `free` | `true` (only `price == 0`) / `false` (only `price > 0`) | `PriceFilter` (optional extra) |
 | `sort` | `date` (default) or `popularity` | sorts by `startTime` or `registrationCount` |
 
-Server flow: the controller turns each present parameter into an `EventFilterStrategy`, wraps them in a `CompositeFilter`, then calls `EventCatalog.setStrategy(...)` and `getEvents()`. With no parameters it returns all upcoming events (Browse Community Events).
+Server flow: `EventService` validates the parameters and creates an `EventFilterStrategy` for each present filter. It wraps them in a `CompositeFilter`, sets that strategy on an `EventCatalog`, then calls `getEvents()`. The catalog starts with all upcoming, visible events; with no filter parameters, the empty composite returns all of them (Browse Community Events). Sorting by date or popularity is applied when loading that collection.
 
 - `200` → `[ EventDto, … ]`
 - `400 VALIDATION_FAILED` (unknown category/district, bad date)

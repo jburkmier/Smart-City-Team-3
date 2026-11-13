@@ -256,6 +256,48 @@ function createRequestCard(request, canReview, departments, departmentLoadError)
             });
             card.appendChild(assignButton);
         }
+
+        const rejectionForm = document.createElement('div');
+        rejectionForm.className = 'request-form';
+        const reasonInput = document.createElement('textarea');
+        reasonInput.className = 'field';
+        reasonInput.maxLength = 500;
+        reasonInput.required = true;
+        reasonInput.rows = 3;
+        reasonInput.setAttribute('aria-label', 'Reason for rejecting request');
+        reasonInput.placeholder = 'Enter a rejection reason';
+        rejectionForm.appendChild(reasonInput);
+
+        const rejectButton = document.createElement('button');
+        rejectButton.className = 'button';
+        rejectButton.type = 'button';
+        rejectButton.textContent = 'Reject request';
+        rejectButton.addEventListener('click', async () => {
+            if (!reasonInput.value.trim()) {
+                reasonInput.setCustomValidity('Enter a reason for rejecting this request.');
+                reasonInput.reportValidity();
+                return;
+            }
+            reasonInput.setCustomValidity('');
+            rejectButton.disabled = true;
+            error.hidden = true;
+            try {
+                await Api.post('/requests/' + request.id + '/reject', {
+                    reason: reasonInput.value
+                });
+                await openRequests(Session.user());
+                requestMessage.className = 'message message-success';
+                requestMessage.textContent = 'Request rejected.';
+                requestMessage.hidden = false;
+            } catch (requestError) {
+                error.textContent = requestError.message;
+                error.hidden = false;
+                rejectButton.disabled = false;
+            }
+        });
+        reasonInput.addEventListener('input', () => reasonInput.setCustomValidity(''));
+        rejectionForm.appendChild(rejectButton);
+        card.appendChild(rejectionForm);
     }
     return card;
 }

@@ -5,6 +5,7 @@ import edu.asu.smartcity.server.domain.SystemUser;
 import edu.asu.smartcity.server.dto.RequestAssignRequest;
 import edu.asu.smartcity.server.dto.RequestCreateRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
+import edu.asu.smartcity.server.dto.RequestRejectRequest;
 import edu.asu.smartcity.server.model.RequestStatus;
 import edu.asu.smartcity.server.model.RequestType;
 import edu.asu.smartcity.server.model.Role;
@@ -42,6 +43,12 @@ public class RequestController {
     public void assign(Context ctx) throws SQLException {
         guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
         ctx.json(requestService.assign(requestId(ctx), readAssignment(ctx)));
+    }
+
+    /** POST /api/requests/{id}/reject: rejects an under-review request with a reason. */
+    public void reject(Context ctx) throws SQLException {
+        guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
+        ctx.json(requestService.reject(requestId(ctx), readRejection(ctx)));
     }
 
     /** GET /api/me/requests: the authenticated citizen's requests. */
@@ -93,6 +100,18 @@ public class RequestController {
             RequestAssignRequest assignment = ctx.bodyAsClass(RequestAssignRequest.class);
             if (assignment != null) {
                 return assignment;
+            }
+        } catch (Exception e) {
+            throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+        }
+        throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+    }
+
+    private static RequestRejectRequest readRejection(Context ctx) {
+        try {
+            RequestRejectRequest rejection = ctx.bodyAsClass(RequestRejectRequest.class);
+            if (rejection != null) {
+                return rejection;
             }
         } catch (Exception e) {
             throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");

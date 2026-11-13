@@ -84,6 +84,7 @@ public class ServerApp {
         app.post("/api/requests", requestController::create);
         app.post("/api/requests/{id}/review", requestController::review);
         app.post("/api/requests/{id}/assign", requestController::assign);
+        app.post("/api/requests/{id}/reject", requestController::reject);
 
         // Javalin throws NotFoundResponse when no route or page matches. Unknown /api paths get
         // the api.md error format; missing pages keep Javalin's plain-text 404.

@@ -51,6 +51,10 @@ public class Request {
         state = state.assign();
     }
 
+    public void reject() {
+        state = state.reject();
+    }
+
     public String getStatusName() {
         return state.getStatusName();
     }

@@ -14,4 +14,9 @@ public class UnderReviewState extends RequestState {
     public RequestState assign() {
         return new AssignedState();
     }
+
+    @Override
+    public RequestState reject() {
+        return new RejectedState();
+    }
 }

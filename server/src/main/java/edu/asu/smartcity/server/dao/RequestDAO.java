@@ -123,6 +123,24 @@ public class RequestDAO {
         }
     }
 
+    /** Rejects a request only if it remains in the expected state. */
+    public boolean reject(int requestId, RequestStatus expectedStatus, RequestStatus nextStatus, String reason)
+            throws SQLException {
+        String sql = """
+                UPDATE service_requests
+                SET status = ?, rejection_reason = ?
+                WHERE request_id = ? AND status = ?
+                """;
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nextStatus.name());
+            stmt.setString(2, reason);
+            stmt.setInt(3, requestId);
+            stmt.setString(4, expectedStatus.name());
+            return stmt.executeUpdate() == 1;
+        }
+    }
+
     /** Returns all requests visible to an administrator, optionally filtered. */
     public List<RequestDto> findForAdministrator(RequestStatus status, RequestType type, Integer departmentId)
             throws SQLException {

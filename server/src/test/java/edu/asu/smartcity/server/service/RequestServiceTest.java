@@ -5,6 +5,7 @@ import edu.asu.smartcity.server.domain.Request;
 import edu.asu.smartcity.server.dto.RequestCreateRequest;
 import edu.asu.smartcity.server.dto.RequestAssignRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
+import edu.asu.smartcity.server.dto.RequestRejectRequest;
 import edu.asu.smartcity.server.model.RequestStatus;
 import edu.asu.smartcity.server.model.RequestType;
 import edu.asu.smartcity.server.web.ApiException;
@@ -74,14 +75,31 @@ public class RequestServiceTest {
             return true;
         }
 
+        @Override
+        public boolean reject(int requestId, RequestStatus expectedStatus, RequestStatus nextStatus, String reason) {
+            if (conflictOnUpdate) {
+                current = requestDto(nextStatus, null, reason);
+                return false;
+            }
+            if (current == null || current.status() != expectedStatus) {
+                return false;
+            }
+            current = requestDto(nextStatus, null, reason);
+            return true;
+        }
+
         private RequestDto requestDto(RequestStatus status) {
-            return requestDto(status, null);
+            return requestDto(status, null, null);
         }
 
         private RequestDto requestDto(RequestStatus status, Integer departmentId) {
+            return requestDto(status, departmentId, null);
+        }
+
+        private RequestDto requestDto(RequestStatus status, Integer departmentId, String rejectionReason) {
             return new RequestDto(2, RequestType.POTHOLE, "Large pothole", "5th St", status,
                     7, "Alex Rivera", departmentId, departmentId == null ? null : "Public Works",
-                    null, null, null, null,
+                    null, null, rejectionReason, null,
                     LocalDateTime.now(), LocalDateTime.now(), null);
         }
     }
@@ -225,6 +243,58 @@ public class RequestServiceTest {
         assertEquals("INVALID_TRANSITION", error.code());
     }
 
+    @Test
+    public void rejectMovesUnderReviewRequestAndTrimsReason() throws Exception {
+        requests.current = requests.requestDto(RequestStatus.UNDER_REVIEW);
+
+        RequestDto response = service.reject(2, new RequestRejectRequest("  Duplicate request.  "));
+
+        assertEquals(RequestStatus.REJECTED, response.status());
+        assertEquals("Duplicate request.", response.rejectionReason());
+        assertEquals("Duplicate request.", requests.current.rejectionReason());
+    }
+
+    @Test
+    public void rejectRequiresReasonWithinLimit() {
+        ApiException missing = expectRejectError(new RequestRejectRequest(null));
+        ApiException blank = expectRejectError(new RequestRejectRequest(" \t "));
+        ApiException tooLong = expectRejectError(new RequestRejectRequest("x".repeat(501)));
+
+        assertEquals("Is required.", missing.fields().get("reason"));
+        assertEquals("Is required.", blank.fields().get("reason"));
+        assertEquals("Must be at most 500 characters.", tooLong.fields().get("reason"));
+    }
+
+    @Test
+    public void rejectRejectsRequestInWrongState() {
+        requests.current = requests.requestDto(RequestStatus.ASSIGNED);
+
+        ApiException error = expectRejectError(new RequestRejectRequest("Not actionable."));
+
+        assertEquals(409, error.status());
+        assertEquals("INVALID_TRANSITION", error.code());
+        assertEquals("Cannot reject a request that is ASSIGNED.", error.getMessage());
+    }
+
+    @Test
+    public void rejectReturnsNotFoundForUnknownRequest() {
+        ApiException error = expectRejectError(new RequestRejectRequest("Invalid request."));
+
+        assertEquals(404, error.status());
+        assertEquals("NOT_FOUND", error.code());
+    }
+
+    @Test
+    public void rejectReportsConcurrentStateChange() {
+        requests.current = requests.requestDto(RequestStatus.UNDER_REVIEW);
+        requests.conflictOnUpdate = true;
+
+        ApiException error = expectRejectError(new RequestRejectRequest("Duplicate."));
+
+        assertEquals(409, error.status());
+        assertEquals("INVALID_TRANSITION", error.code());
+    }
+
     private ApiException expectValidationError(RequestCreateRequest request) {
         try {
             service.create(request, 7);
@@ -258,6 +328,18 @@ public class RequestServiceTest {
             throw new AssertionError("Expected assignment error but got " + e, e);
         }
         fail("Expected assignment error");
+        return null;
+    }
+
+    private ApiException expectRejectError(RequestRejectRequest rejection) {
+        try {
+            service.reject(2, rejection);
+        } catch (ApiException e) {
+            return e;
+        } catch (Exception e) {
+            throw new AssertionError("Expected rejection error but got " + e, e);
+        }
+        fail("Expected rejection error");
         return null;
     }
 }

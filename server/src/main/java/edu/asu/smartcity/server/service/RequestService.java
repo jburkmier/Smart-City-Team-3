@@ -8,6 +8,7 @@ import edu.asu.smartcity.server.domain.SubmittedState;
 import edu.asu.smartcity.server.dto.RequestAssignRequest;
 import edu.asu.smartcity.server.dto.RequestCreateRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
+import edu.asu.smartcity.server.dto.RequestRejectRequest;
 import edu.asu.smartcity.server.model.RequestStatus;
 import edu.asu.smartcity.server.model.RequestType;
 import edu.asu.smartcity.server.web.ApiException;
@@ -95,6 +96,36 @@ public class RequestService {
         }
         return requests.findById(requestId).orElseThrow(
                 () -> new SQLException("Assigned request could not be loaded."));
+    }
+
+    public RequestDto reject(int requestId, RequestRejectRequest rejection) throws SQLException {
+        Map<String, String> errors = new LinkedHashMap<>();
+        if (rejection == null || rejection.reason() == null || rejection.reason().isBlank()) {
+            errors.put("reason", "Is required.");
+        } else if (rejection.reason().trim().length() > 500) {
+            errors.put("reason", "Must be at most 500 characters.");
+        }
+        if (!errors.isEmpty()) {
+            throw new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.", errors);
+        }
+        String reason = rejection.reason().trim();
+
+        RequestDto current = findRequest(requestId);
+        Request request = new Request(current.citizenId(), current.type(), current.description(), current.location(),
+                RequestState.fromStatus(current.status()));
+        try {
+            request.reject();
+        } catch (RequestTransitionException e) {
+            throw invalidTransition(e);
+        }
+
+        if (!requests.reject(requestId, current.status(), request.getState().getStatus(), reason)) {
+            RequestDto latest = findRequest(requestId);
+            throw new ApiException(409, "INVALID_TRANSITION",
+                    "Cannot reject a request that is " + latest.status() + ".");
+        }
+        return requests.findById(requestId).orElseThrow(
+                () -> new SQLException("Rejected request could not be loaded."));
     }
 
     public List<RequestDto> findByCitizen(int citizenId) throws SQLException {

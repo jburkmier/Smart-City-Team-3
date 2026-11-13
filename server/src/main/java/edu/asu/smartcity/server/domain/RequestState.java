@@ -17,6 +17,11 @@ public abstract class RequestState {
                 "Cannot assign a request that is " + getStatusName() + ".");
     }
 
+    public RequestState reject() {
+        throw new RequestTransitionException(
+                "Cannot reject a request that is " + getStatusName() + ".");
+    }
+
     public final String getStatusName() {
         return getStatus().name();
     }

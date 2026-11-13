@@ -20,6 +20,8 @@ const error = document.getElementById('error');
 const requestsView = document.getElementById('requests-view');
 const requestsTitle = document.getElementById('requests-title');
 const requestList = document.getElementById('request-list');
+const requestForm = document.getElementById('request-form');
+const requestMessage = document.getElementById('request-message');
 
 function showUser(user) {
     document.getElementById('welcome').textContent = 'Welcome, ' + user.name;
@@ -39,6 +41,10 @@ function showUser(user) {
             }
             if (feature === 'My Registrations') {
                 openEvents(true);
+                return;
+            }
+            if (feature === 'Report an Issue') {
+                openRequestForm(user);
                 return;
             }
             if (isRequestListFeature(user.role, feature)) {
@@ -65,6 +71,9 @@ async function openRequests(user) {
         ? 'My Requests'
         : user.role === 'CITY_ADMINISTRATOR' ? 'Review Requests' : 'Department Requests';
     requestsView.hidden = false;
+    requestForm.hidden = true;
+    requestList.hidden = false;
+    requestMessage.hidden = true;
     notice.hidden = true;
     error.hidden = true;
     requestList.replaceChildren();
@@ -87,6 +96,56 @@ async function openRequests(user) {
         error.hidden = false;
     }
 }
+
+function openRequestForm(user) {
+    if (user.role !== 'CITIZEN') {
+        return;
+    }
+    document.getElementById('events-view').hidden = true;
+    requestsTitle.textContent = 'Report an Issue';
+    requestsView.hidden = false;
+    requestList.hidden = true;
+    requestForm.hidden = false;
+    requestForm.reset();
+    requestMessage.hidden = true;
+    notice.hidden = true;
+    error.hidden = true;
+}
+
+requestForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    requestMessage.hidden = true;
+    error.hidden = true;
+    const form = new FormData(requestForm);
+    const submitButton = requestForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    try {
+        await Api.post('/requests', {
+            type: form.get('type'),
+            description: form.get('description'),
+            location: form.get('location')
+        });
+        requestForm.reset();
+        await openRequests(Session.user());
+        requestMessage.className = 'message message-success';
+        requestMessage.textContent = 'Service request submitted.';
+        requestMessage.hidden = false;
+    } catch (requestError) {
+        requestMessage.className = 'message message-error';
+        requestMessage.textContent = requestError.message;
+        requestMessage.hidden = false;
+    } finally {
+        submitButton.disabled = false;
+    }
+});
+
+document.getElementById('cancel-request').addEventListener('click', () => {
+    openRequests(Session.user());
+});
+
+document.getElementById('close-requests').addEventListener('click', () => {
+    requestsView.hidden = true;
+});
 
 function createRequestCard(request) {
     const card = document.createElement('article');
@@ -125,6 +184,8 @@ function appendRequestText(container, text) {
 
 document.getElementById('close-requests').addEventListener('click', () => {
     requestsView.hidden = true;
+    requestForm.hidden = true;
+    requestList.hidden = false;
 });
 
 async function loadUser() {

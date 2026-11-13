@@ -1,5 +1,6 @@
 package edu.asu.smartcity.server.dao;
 
+import edu.asu.smartcity.server.domain.Request;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.RequestDto;
 import edu.asu.smartcity.server.model.RequestStatus;
@@ -9,11 +10,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-/** SQL for listing service requests visible to the caller. */
+/** SQL for creating and listing service requests visible to the caller. */
 public class RequestDAO {
 
     private static final String REQUEST_COLUMNS = """
@@ -36,10 +39,40 @@ public class RequestDAO {
         this.database = database;
     }
 
+    /** Persists a new request using the status supplied by its current state. */
+    public RequestDto create(Request request) throws SQLException {
+        String sql = """
+                INSERT INTO service_requests (citizen_id, type, description, location, status)
+                VALUES (?, ?, ?, ?, ?)
+                """;
+        int requestId;
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, request.getCitizenId());
+            stmt.setString(2, request.getType().name());
+            stmt.setString(3, request.getDescription());
+            stmt.setString(4, request.getLocation());
+            stmt.setString(5, request.getStatusName());
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (!keys.next()) {
+                    throw new SQLException("Creating request failed; no request_id was returned.");
+                }
+                requestId = keys.getInt(1);
+            }
+        }
+        return findById(requestId).orElseThrow(
+                () -> new SQLException("Creating request failed; the saved request could not be loaded."));
+    }
+
     /** Returns one citizen's requests, newest first. */
     public List<RequestDto> findByCitizen(int citizenId) throws SQLException {
         return query(" WHERE r.citizen_id = ? ORDER BY r.submitted_at DESC, r.request_id DESC",
                 List.of(citizenId));
+    }
+
+    private Optional<RequestDto> findById(int requestId) throws SQLException {
+        return query(" WHERE r.request_id = ?", List.of(requestId)).stream().findFirst();
     }
 
     /** Returns all requests visible to an administrator, optionally filtered. */

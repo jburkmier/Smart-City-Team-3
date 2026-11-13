@@ -38,4 +38,15 @@ public class RequestDtoJsonTest {
         assertTrue(json.get("assignedWorkerId").isNull());
         assertTrue(json.get("resolvedAt").isNull());
     }
+
+    @Test
+    public void requestCreateRequestReadsTheDocumentedFields() throws Exception {
+        RequestCreateRequest request = mapper.readValue(
+                "{\"type\":\"POTHOLE\",\"description\":\"Large pothole.\",\"location\":\"5th St\"}",
+                RequestCreateRequest.class);
+
+        assertEquals(RequestType.POTHOLE, request.type());
+        assertEquals("Large pothole.", request.description());
+        assertEquals("5th St", request.location());
+    }
 }

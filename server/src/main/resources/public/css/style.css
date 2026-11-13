@@ -297,6 +297,23 @@ body {
     gap: 12px;
 }
 
+.request-form {
+    display: grid;
+    gap: 12px;
+    max-width: 640px;
+    margin-bottom: 16px;
+}
+
+.request-form label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.request-form textarea {
+    resize: vertical;
+}
+
 .request-card {
     padding: 16px;
     border-radius: 8px;

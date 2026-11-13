@@ -2,6 +2,7 @@ package edu.asu.smartcity.server.web;
 
 import edu.asu.smartcity.server.domain.DepartmentManager;
 import edu.asu.smartcity.server.domain.SystemUser;
+import edu.asu.smartcity.server.dto.RequestCreateRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
 import edu.asu.smartcity.server.model.RequestStatus;
 import edu.asu.smartcity.server.model.RequestType;
@@ -13,7 +14,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-/** HTTP handlers for service-request lists. */
+/** HTTP handlers for service-request submission and lists. */
 public class RequestController {
 
     private final RequestService requestService;
@@ -22,6 +23,12 @@ public class RequestController {
     public RequestController(RequestService requestService, AuthGuard guard) {
         this.requestService = requestService;
         this.guard = guard;
+    }
+
+    /** POST /api/requests: submits a service request for the authenticated citizen. */
+    public void create(Context ctx) throws SQLException {
+        int citizenId = guard.requireRole(ctx, Role.CITIZEN).getUserId();
+        ctx.status(201).json(requestService.create(readRequest(ctx), citizenId));
     }
 
     /** GET /api/me/requests: the authenticated citizen's requests. */
@@ -54,6 +61,18 @@ public class RequestController {
             requests = requestService.findForDepartmentManager(departmentId, status, type);
         }
         ctx.json(requests);
+    }
+
+    private static RequestCreateRequest readRequest(Context ctx) {
+        try {
+            RequestCreateRequest request = ctx.bodyAsClass(RequestCreateRequest.class);
+            if (request != null) {
+                return request;
+            }
+        } catch (Exception e) {
+            throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+        }
+        throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
     }
 
     private static Integer parseDepartmentId(String value) {

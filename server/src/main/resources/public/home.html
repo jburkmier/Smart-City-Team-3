@@ -132,6 +132,30 @@
                 <h2 id="requests-title">Requests</h2>
                 <button class="button" id="close-requests" type="button">Back to home</button>
             </div>
+            <p id="request-message" class="message" role="status" hidden></p>
+            <form id="request-form" class="request-form" hidden>
+                <label>Request type
+                    <select class="field" name="type" required>
+                        <option value="">Choose a type</option>
+                        <option value="STREETLIGHT">Streetlight</option>
+                        <option value="POTHOLE">Pothole</option>
+                        <option value="GRAFFITI">Graffiti</option>
+                        <option value="WATER_LEAK">Water leak</option>
+                        <option value="NOISE">Noise</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </label>
+                <label>Description
+                    <textarea class="field" name="description" maxlength="2000" rows="4" required></textarea>
+                </label>
+                <label>Location
+                    <input class="field" name="location" maxlength="255" required>
+                </label>
+                <div class="links">
+                    <button class="button" type="submit">Submit request</button>
+                    <button class="button" id="cancel-request" type="button">Cancel</button>
+                </div>
+            </form>
             <div id="request-list" class="request-list" aria-live="polite"></div>
         </section>
     </main>

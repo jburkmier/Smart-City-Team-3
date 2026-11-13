@@ -56,7 +56,7 @@ VALUES
   (10, 'Community Mural Workshop', 'Help design a neighborhood mural with local artists.',
    'CULTURAL', DATE_SUB(NOW(), INTERVAL 2 DAY), 'EAST', 'East Arts Center', 10.00, 2);
 
---Citizen Alex Rivera is registered for upcoming events and a past event.
+-- Citizen Alex Rivera is registered for upcoming events and a past event.
 INSERT INTO event_registrations (user_id, event_id) VALUES
   (1, 1),
   (1, 4),

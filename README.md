@@ -29,6 +29,10 @@ All passwords are `password123`.
 | admin@smartcity.test | City Administrator |
 | manager@smartcity.test | Department Manager (Public Works) |
 | worker@smartcity.test | Worker (Public Works) |
+| utilities.manager@smartcity.test | Department Manager (Utilities) |
+| utilities.worker@smartcity.test | Worker (Utilities) |
+| parks.manager@smartcity.test | Department Manager (Parks & Recreation) |
+| parks.worker@smartcity.test | Worker (Parks & Recreation) |
 
 New accounts created on the Register page are always Citizens.
 

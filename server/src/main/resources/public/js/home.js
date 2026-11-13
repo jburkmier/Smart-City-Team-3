@@ -17,6 +17,9 @@ const ROLE_FEATURES = {
 
 const notice = document.getElementById('notice');
 const error = document.getElementById('error');
+const requestsView = document.getElementById('requests-view');
+const requestsTitle = document.getElementById('requests-title');
+const requestList = document.getElementById('request-list');
 
 function showUser(user) {
     document.getElementById('welcome').textContent = 'Welcome, ' + user.name;
@@ -38,12 +41,91 @@ function showUser(user) {
                 openEvents(true);
                 return;
             }
+            if (isRequestListFeature(user.role, feature)) {
+                openRequests(user);
+                return;
+            }
             notice.textContent = feature + ' is coming soon.';
             notice.hidden = false;
         });
         nav.appendChild(button);
     }
 }
+
+function isRequestListFeature(role, feature) {
+    return (role === 'CITIZEN' && feature === 'My Requests')
+        || (role === 'CITY_ADMINISTRATOR' && feature === 'Review Requests')
+        || (role === 'DEPARTMENT_MANAGER' && feature === 'Department Requests');
+}
+
+async function openRequests(user) {
+    const citizenView = user.role === 'CITIZEN';
+    document.getElementById('events-view').hidden = true;
+    requestsTitle.textContent = citizenView
+        ? 'My Requests'
+        : user.role === 'CITY_ADMINISTRATOR' ? 'Review Requests' : 'Department Requests';
+    requestsView.hidden = false;
+    notice.hidden = true;
+    error.hidden = true;
+    requestList.replaceChildren();
+
+    try {
+        const requests = await Api.get(citizenView ? '/me/requests' : '/requests');
+        if (!requests.length) {
+            const empty = document.createElement('p');
+            empty.textContent = citizenView
+                ? 'You have not submitted any requests.'
+                : 'No service requests are available.';
+            requestList.appendChild(empty);
+            return;
+        }
+        for (const request of requests) {
+            requestList.appendChild(createRequestCard(request));
+        }
+    } catch (requestError) {
+        error.textContent = requestError.message;
+        error.hidden = false;
+    }
+}
+
+function createRequestCard(request) {
+    const card = document.createElement('article');
+    card.className = 'request-card';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Request #' + request.id + ' · ' + request.type.replaceAll('_', ' ');
+    card.appendChild(title);
+    appendRequestText(card, request.description);
+    appendRequestText(card, request.location);
+    appendRequestText(card, 'Status: ' + request.status.replaceAll('_', ' '));
+    appendRequestText(card, 'Submitted: ' + new Date(request.submittedAt).toLocaleString());
+    if (request.citizenName) {
+        appendRequestText(card, 'Submitted by: ' + request.citizenName);
+    }
+    if (request.departmentName) {
+        appendRequestText(card, 'Department: ' + request.departmentName);
+    }
+    if (request.assignedWorkerName) {
+        appendRequestText(card, 'Assigned to: ' + request.assignedWorkerName);
+    }
+    if (request.rejectionReason) {
+        appendRequestText(card, 'Rejection reason: ' + request.rejectionReason);
+    }
+    if (request.resolutionNotes) {
+        appendRequestText(card, 'Resolution: ' + request.resolutionNotes);
+    }
+    return card;
+}
+
+function appendRequestText(container, text) {
+    const line = document.createElement('p');
+    line.textContent = text;
+    container.appendChild(line);
+}
+
+document.getElementById('close-requests').addEventListener('click', () => {
+    requestsView.hidden = true;
+});
 
 async function loadUser() {
     try {

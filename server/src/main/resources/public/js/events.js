@@ -15,6 +15,10 @@ let editingEventId = null;
 function openEvents(registrations) {
     const user = Session.user();
     const isAdmin = user && user.role === 'CITY_ADMINISTRATOR';
+    const requestsView = document.getElementById('requests-view');
+    if (requestsView) {
+        requestsView.hidden = true;
+    }
     viewingRegistrations = registrations;
     eventsView.hidden = false;
     document.getElementById('notice').hidden = true;

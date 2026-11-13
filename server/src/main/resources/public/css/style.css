@@ -195,11 +195,18 @@ body {
     background-color: var(--accent-light-color);
 }
 
+.requests-view {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--accent-light-color);
+}
+
 .section-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    margin-bottom: 16px;
 }
 
 .section-heading h2,
@@ -284,9 +291,33 @@ body {
 }
 
 
+.request-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.request-card {
+    padding: 16px;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.request-card h3 {
+    margin: 0 0 10px;
+}
+
+.request-card p {
+    margin: 6px 0;
+}
+
 @media (max-width: 480px) {
     .events-view {
         padding: 14px;
+    }
+
+    .requests-view {
+        padding: 16px;
     }
 
     .section-heading {

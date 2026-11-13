@@ -4,17 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.asu.smartcity.server.dao.EventDAO;
+import edu.asu.smartcity.server.dao.RequestDAO;
 import edu.asu.smartcity.server.dao.UserDAO;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.ErrorResponse;
 import edu.asu.smartcity.server.service.AuthService;
 import edu.asu.smartcity.server.service.EventService;
+import edu.asu.smartcity.server.service.RequestService;
 import edu.asu.smartcity.server.session.SessionManager;
 import edu.asu.smartcity.server.web.ApiException;
 import edu.asu.smartcity.server.web.AuthController;
 import edu.asu.smartcity.server.web.AuthGuard;
 import edu.asu.smartcity.server.web.EventController;
 import edu.asu.smartcity.server.web.HealthController;
+import edu.asu.smartcity.server.web.RequestController;
 import io.javalin.Javalin;
 import io.javalin.http.NotFoundResponse;
 import io.javalin.http.staticfiles.Location;
@@ -49,12 +52,14 @@ public class ServerApp {
         SessionManager sessions = SessionManager.instance();
         UserDAO userDAO = new UserDAO(database);
         AuthService authService = new AuthService(userDAO, sessions);
+        RequestService requestService = new RequestService(new RequestDAO(database));
         AuthGuard authGuard = new AuthGuard(sessions);
 
         HealthController healthController = new HealthController(database);
         AuthController authController = new AuthController(authService, authGuard);
         EventDAO eventDAO = new EventDAO(database);
         EventController eventController = new EventController(new EventService(eventDAO), authGuard);
+        RequestController requestController = new RequestController(requestService, authGuard);
 
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
@@ -74,6 +79,8 @@ public class ServerApp {
         app.post("/api/auth/login", authController::login);
         app.post("/api/auth/logout", authController::logout);
         app.get("/api/me", authController::me);
+        app.get("/api/me/requests", requestController::mine);
+        app.get("/api/requests", requestController::list);
 
         // Javalin throws NotFoundResponse when no route or page matches. Unknown /api paths get
         // the api.md error format; missing pages keep Javalin's plain-text 404.

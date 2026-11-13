@@ -63,4 +63,38 @@ INSERT INTO event_registrations (user_id, event_id) VALUES
   (1, 9);
 
 -- Part 2 adds: ~8 service requests in every status, a second worker.
+-- Demo service requests for Alex Rivera, covering every request status.
+-- Department IDs match the demo departments above; task assignment is a separate feature.
+INSERT INTO service_requests
+  (request_id, citizen_id, type, description, location, status, department_id,
+   rejection_reason, resolution_notes, submitted_at, updated_at, resolved_at)
+VALUES
+  (1, 1, 'STREETLIGHT', 'Streetlight is out and the sidewalk is very dark at night.',
+   '123 Main St and 2nd Ave', 'SUBMITTED', NULL,
+   NULL, NULL, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), NULL),
+  (2, 1, 'POTHOLE', 'A large pothole is forming in the right lane.',
+   '5th St and Mill Ave', 'SUBMITTED', NULL,
+   NULL, NULL, DATE_SUB(NOW(), INTERVAL 8 HOUR), DATE_SUB(NOW(), INTERVAL 8 HOUR), NULL),
+  (3, 1, 'GRAFFITI', 'Graffiti appeared on the public wall beside the library.',
+   'Central Library, west wall', 'UNDER_REVIEW', NULL,
+   NULL, NULL, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), NULL),
+  (4, 1, 'POTHOLE', 'Road surface is broken near the bus stop.',
+   'Rural Rd and Southern Ave', 'ASSIGNED', 1,
+   NULL, NULL, DATE_SUB(NOW(), INTERVAL 3 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY), NULL),
+  (5, 1, 'WATER_LEAK', 'Water is bubbling up through the pavement near the curb.',
+   '800 North St', 'IN_PROGRESS', 2,
+   NULL, NULL, DATE_SUB(NOW(), INTERVAL 5 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), NULL),
+  (6, 1, 'GRAFFITI', 'Graffiti on the park restroom exterior needs cleanup.',
+   'Maple Park, north restroom', 'RESOLVED', 3,
+   NULL, 'Graffiti removed and the wall repainted.', DATE_SUB(NOW(), INTERVAL 12 DAY),
+   DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+  (7, 1, 'NOISE', 'Repeated noise complaint with no time or location details.',
+   'Location not provided', 'REJECTED', 1,
+   'Please submit the location and approximate time of the noise.', NULL,
+   DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), NULL),
+  (8, 1, 'STREETLIGHT', 'The pedestrian crossing light is not illuminating.',
+   'Broadway Rd and 7th St', 'ASSIGNED', 1,
+   NULL, NULL, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), NULL);
+
+-- Part 2 adds: events, request workflows, and a second worker.
 -- Part 3 adds: announcements (one EMERGENCY), transit routes, a couple of open flags.

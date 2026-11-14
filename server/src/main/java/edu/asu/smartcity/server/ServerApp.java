@@ -3,16 +3,19 @@ package edu.asu.smartcity.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import edu.asu.smartcity.server.dao.DepartmentDAO;
 import edu.asu.smartcity.server.dao.EventDAO;
 import edu.asu.smartcity.server.dao.UserDAO;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.ErrorResponse;
 import edu.asu.smartcity.server.service.AuthService;
+import edu.asu.smartcity.server.service.DepartmentService;
 import edu.asu.smartcity.server.service.EventService;
 import edu.asu.smartcity.server.session.SessionManager;
 import edu.asu.smartcity.server.web.ApiException;
 import edu.asu.smartcity.server.web.AuthController;
 import edu.asu.smartcity.server.web.AuthGuard;
+import edu.asu.smartcity.server.web.DepartmentController;
 import edu.asu.smartcity.server.web.EventController;
 import edu.asu.smartcity.server.web.HealthController;
 import io.javalin.Javalin;
@@ -55,6 +58,9 @@ public class ServerApp {
         AuthController authController = new AuthController(authService, authGuard);
         EventDAO eventDAO = new EventDAO(database);
         EventController eventController = new EventController(new EventService(eventDAO), authGuard);
+        DepartmentDAO departmentDAO = new DepartmentDAO(database);
+        DepartmentController departmentController =
+                new DepartmentController(new DepartmentService(departmentDAO), authGuard);
 
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
@@ -70,6 +76,8 @@ public class ServerApp {
         app.post("/api/events/{id}/registration", eventController::register);
         app.delete("/api/events/{id}/registration", eventController::unregister);
         app.get("/api/me/registrations", eventController::registrations);
+        app.get("/api/departments", departmentController::list);
+        app.get("/api/departments/{id}/workers", departmentController::workers);
         app.post("/api/auth/register", authController::register);
         app.post("/api/auth/login", authController::login);
         app.post("/api/auth/logout", authController::logout);

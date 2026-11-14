@@ -27,8 +27,8 @@ All passwords are `password123`.
 |---|---|
 | citizen@smartcity.test | Citizen |
 | admin@smartcity.test | City Administrator |
-| manager@smartcity.test | Department Manager (Public Works) |
-| worker@smartcity.test | Worker (Public Works) |
+| publicworks.manager@smartcity.test | Department Manager (Public Works) |
+| publicworks.worker@smartcity.test | Worker (Public Works) |
 | utilities.manager@smartcity.test | Department Manager (Utilities) |
 | utilities.worker@smartcity.test | Worker (Utilities) |
 | parks.manager@smartcity.test | Department Manager (Parks & Recreation) |

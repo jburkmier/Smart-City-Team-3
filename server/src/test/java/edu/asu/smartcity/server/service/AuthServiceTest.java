@@ -145,10 +145,10 @@ public class AuthServiceTest {
 
     @Test
     public void loginReturnsTokenAndBuildsTheRightUserType() throws Exception {
-        users.byEmail.put("worker@smartcity.test", new UserRecord(4, "Sam Lee", "worker@smartcity.test",
+        users.byEmail.put("publicworks.worker@smartcity.test", new UserRecord(4, "Sam Lee", "publicworks.worker@smartcity.test",
                 PasswordHasher.hash("password123"), Role.WORKER, null, null, 1, "Road repair"));
 
-        LoginResponse response = auth.login(new LoginRequest(" Worker@SmartCity.test ", "password123"));
+        LoginResponse response = auth.login(new LoginRequest(" PublicWorks.Worker@SmartCity.test ", "password123"));
 
         assertEquals(Role.WORKER, response.user().role());
         assertEquals(Integer.valueOf(1), response.user().departmentId());

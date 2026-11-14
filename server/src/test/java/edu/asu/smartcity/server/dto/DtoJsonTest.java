@@ -70,7 +70,7 @@ public class DtoJsonTest {
 
     @Test
     public void staffUserHasDepartmentId() {
-        UserDto worker = new UserDto(4, "Sam Lee", "worker@smartcity.test", Role.WORKER, null, null, 1);
+        UserDto worker = new UserDto(4, "Sam Lee", "publicworks.worker@smartcity.test", Role.WORKER, null, null, 1);
 
         JsonNode json = mapper.valueToTree(worker);
 

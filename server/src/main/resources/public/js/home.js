@@ -17,6 +17,11 @@ const ROLE_FEATURES = {
 
 const notice = document.getElementById('notice');
 const error = document.getElementById('error');
+const requestsView = document.getElementById('requests-view');
+const requestsTitle = document.getElementById('requests-title');
+const requestList = document.getElementById('request-list');
+const requestForm = document.getElementById('request-form');
+const requestMessage = document.getElementById('request-message');
 
 function showUser(user) {
     document.getElementById('welcome').textContent = 'Welcome, ' + user.name;
@@ -38,12 +43,276 @@ function showUser(user) {
                 openEvents(true);
                 return;
             }
+            if (feature === 'Report an Issue') {
+                openRequestForm(user);
+                return;
+            }
+            if (isRequestListFeature(user.role, feature)) {
+                openRequests(user);
+                return;
+            }
             notice.textContent = feature + ' is coming soon.';
             notice.hidden = false;
         });
         nav.appendChild(button);
     }
 }
+
+function isRequestListFeature(role, feature) {
+    return (role === 'CITIZEN' && feature === 'My Requests')
+        || (role === 'CITY_ADMINISTRATOR' && feature === 'Review Requests')
+        || (role === 'DEPARTMENT_MANAGER' && feature === 'Department Requests');
+}
+
+async function openRequests(user) {
+    const citizenView = user.role === 'CITIZEN';
+    document.getElementById('events-view').hidden = true;
+    requestsTitle.textContent = citizenView
+        ? 'My Requests'
+        : user.role === 'CITY_ADMINISTRATOR' ? 'Review Requests' : 'Department Requests';
+    requestsView.hidden = false;
+    requestForm.hidden = true;
+    requestList.hidden = false;
+    requestMessage.hidden = true;
+    notice.hidden = true;
+    error.hidden = true;
+    requestList.replaceChildren();
+
+    try {
+        const requests = await Api.get(citizenView ? '/me/requests' : '/requests');
+        if (!requests.length) {
+            const empty = document.createElement('p');
+            empty.textContent = citizenView
+                ? 'You have not submitted any requests.'
+                : 'No service requests are available.';
+            requestList.appendChild(empty);
+            return;
+        }
+        let departments = [];
+        let departmentLoadError = null;
+        if (user.role === 'CITY_ADMINISTRATOR' && requests.some(request => request.status === 'UNDER_REVIEW')) {
+            try {
+                departments = await Api.get('/departments');
+            } catch (departmentError) {
+                departmentLoadError = departmentError.message;
+            }
+        }
+        for (const request of requests) {
+            requestList.appendChild(createRequestCard(
+                request, user.role === 'CITY_ADMINISTRATOR', departments, departmentLoadError));
+        }
+    } catch (requestError) {
+        error.textContent = requestError.message;
+        error.hidden = false;
+    }
+}
+
+function openRequestForm(user) {
+    if (user.role !== 'CITIZEN') {
+        return;
+    }
+    document.getElementById('events-view').hidden = true;
+    requestsTitle.textContent = 'Report an Issue';
+    requestsView.hidden = false;
+    requestList.hidden = true;
+    requestForm.hidden = false;
+    requestForm.reset();
+    requestMessage.hidden = true;
+    notice.hidden = true;
+    error.hidden = true;
+}
+
+requestForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    requestMessage.hidden = true;
+    error.hidden = true;
+    const form = new FormData(requestForm);
+    const submitButton = requestForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    try {
+        await Api.post('/requests', {
+            type: form.get('type'),
+            description: form.get('description'),
+            location: form.get('location')
+        });
+        requestForm.reset();
+        await openRequests(Session.user());
+        requestMessage.className = 'message message-success';
+        requestMessage.textContent = 'Service request submitted.';
+        requestMessage.hidden = false;
+    } catch (requestError) {
+        requestMessage.className = 'message message-error';
+        requestMessage.textContent = requestError.message;
+        requestMessage.hidden = false;
+    } finally {
+        submitButton.disabled = false;
+    }
+});
+
+document.getElementById('cancel-request').addEventListener('click', () => {
+    openRequests(Session.user());
+});
+
+document.getElementById('close-requests').addEventListener('click', () => {
+    requestsView.hidden = true;
+});
+
+function createRequestCard(request, canReview, departments, departmentLoadError) {
+    const card = document.createElement('article');
+    card.className = 'request-card';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Request #' + request.id + ' · ' + request.type.replaceAll('_', ' ');
+    card.appendChild(title);
+    appendRequestText(card, request.description);
+    appendRequestText(card, request.location);
+    appendRequestText(card, 'Status: ' + request.status.replaceAll('_', ' '));
+    appendRequestText(card, 'Submitted: ' + new Date(request.submittedAt).toLocaleString());
+    if (request.citizenName) {
+        appendRequestText(card, 'Submitted by: ' + request.citizenName);
+    }
+    if (request.departmentName) {
+        appendRequestText(card, 'Department: ' + request.departmentName);
+    }
+    if (request.assignedWorkerName) {
+        appendRequestText(card, 'Assigned to: ' + request.assignedWorkerName);
+    }
+    if (request.rejectionReason) {
+        appendRequestText(card, 'Rejection reason: ' + request.rejectionReason);
+    }
+    if (request.resolutionNotes) {
+        appendRequestText(card, 'Resolution: ' + request.resolutionNotes);
+    }
+    if (canReview && request.status === 'SUBMITTED') {
+        const reviewButton = document.createElement('button');
+        reviewButton.className = 'button';
+        reviewButton.type = 'button';
+        reviewButton.textContent = 'Review request';
+        reviewButton.addEventListener('click', async () => {
+            reviewButton.disabled = true;
+            error.hidden = true;
+            try {
+                await Api.post('/requests/' + request.id + '/review');
+                await openRequests(Session.user());
+                requestMessage.className = 'message message-success';
+                requestMessage.textContent = 'Request moved to Under Review.';
+                requestMessage.hidden = false;
+            } catch (requestError) {
+                error.textContent = requestError.message;
+                error.hidden = false;
+                reviewButton.disabled = false;
+            }
+        });
+        card.appendChild(reviewButton);
+    }
+    if (canReview && request.status === 'UNDER_REVIEW') {
+        if (departmentLoadError) {
+            appendRequestText(card, 'Unable to load departments: ' + departmentLoadError);
+        } else {
+            const departmentSelect = document.createElement('select');
+            departmentSelect.className = 'field';
+            departmentSelect.required = true;
+            departmentSelect.setAttribute('aria-label', 'Assign request to department');
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Choose a department';
+            departmentSelect.appendChild(placeholder);
+            for (const department of departments) {
+                const option = document.createElement('option');
+                option.value = department.id;
+                option.textContent = department.name;
+                departmentSelect.appendChild(option);
+            }
+            card.appendChild(departmentSelect);
+
+            if (departments.length === 0) {
+                appendRequestText(card, 'No departments are available for assignment.');
+            }
+            const assignButton = document.createElement('button');
+            assignButton.className = 'button';
+            assignButton.type = 'button';
+            assignButton.textContent = 'Assign to department';
+            assignButton.disabled = departments.length === 0;
+            assignButton.addEventListener('click', async () => {
+                if (!departmentSelect.value) {
+                    departmentSelect.reportValidity();
+                    return;
+                }
+                assignButton.disabled = true;
+                error.hidden = true;
+                try {
+                    await Api.post('/requests/' + request.id + '/assign', {
+                        departmentId: Number(departmentSelect.value)
+                    });
+                    await openRequests(Session.user());
+                    requestMessage.className = 'message message-success';
+                    requestMessage.textContent = 'Request assigned to department.';
+                    requestMessage.hidden = false;
+                } catch (requestError) {
+                    error.textContent = requestError.message;
+                    error.hidden = false;
+                    assignButton.disabled = false;
+                }
+            });
+            card.appendChild(assignButton);
+        }
+
+        const rejectionForm = document.createElement('div');
+        rejectionForm.className = 'request-form';
+        const reasonInput = document.createElement('textarea');
+        reasonInput.className = 'field';
+        reasonInput.maxLength = 500;
+        reasonInput.required = true;
+        reasonInput.rows = 3;
+        reasonInput.setAttribute('aria-label', 'Reason for rejecting request');
+        reasonInput.placeholder = 'Enter a rejection reason';
+        rejectionForm.appendChild(reasonInput);
+
+        const rejectButton = document.createElement('button');
+        rejectButton.className = 'button';
+        rejectButton.type = 'button';
+        rejectButton.textContent = 'Reject request';
+        rejectButton.addEventListener('click', async () => {
+            if (!reasonInput.value.trim()) {
+                reasonInput.setCustomValidity('Enter a reason for rejecting this request.');
+                reasonInput.reportValidity();
+                return;
+            }
+            reasonInput.setCustomValidity('');
+            rejectButton.disabled = true;
+            error.hidden = true;
+            try {
+                await Api.post('/requests/' + request.id + '/reject', {
+                    reason: reasonInput.value
+                });
+                await openRequests(Session.user());
+                requestMessage.className = 'message message-success';
+                requestMessage.textContent = 'Request rejected.';
+                requestMessage.hidden = false;
+            } catch (requestError) {
+                error.textContent = requestError.message;
+                error.hidden = false;
+                rejectButton.disabled = false;
+            }
+        });
+        reasonInput.addEventListener('input', () => reasonInput.setCustomValidity(''));
+        rejectionForm.appendChild(rejectButton);
+        card.appendChild(rejectionForm);
+    }
+    return card;
+}
+
+function appendRequestText(container, text) {
+    const line = document.createElement('p');
+    line.textContent = text;
+    container.appendChild(line);
+}
+
+document.getElementById('close-requests').addEventListener('click', () => {
+    requestsView.hidden = true;
+    requestForm.hidden = true;
+    requestList.hidden = false;
+});
 
 async function loadUser() {
     try {

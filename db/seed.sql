@@ -104,5 +104,25 @@ VALUES
    'Broadway Rd and 7th St', 'ASSIGNED', 1,
    NULL, NULL, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), NULL);
 
+-- Alex Rivera's request-status notifications: one per status change of the requests above,
+-- timed between each request's submitted_at and updated_at. The newest ones are unread.
+-- Other notification types are added with the features that send them (announcements, tasks,
+-- event cancellation), so every row here matches data that exists.
+INSERT INTO notifications (notification_id, user_id, type, message, related_id, is_read, created_at) VALUES
+  (1,  1, 'REQUEST_STATUS', 'Your request #6 (GRAFFITI) is now UNDER_REVIEW.',   6, TRUE,  DATE_SUB(NOW(), INTERVAL 11 DAY)),
+  (2,  1, 'REQUEST_STATUS', 'Your request #6 (GRAFFITI) is now ASSIGNED.',       6, TRUE,  DATE_SUB(NOW(), INTERVAL 10 DAY)),
+  (3,  1, 'REQUEST_STATUS', 'Your request #6 (GRAFFITI) is now IN_PROGRESS.',    6, TRUE,  DATE_SUB(NOW(), INTERVAL 6 DAY)),
+  (4,  1, 'REQUEST_STATUS', 'Your request #7 (NOISE) is now UNDER_REVIEW.',      7, TRUE,  DATE_SUB(NOW(), INTERVAL 132 HOUR)),
+  (5,  1, 'REQUEST_STATUS', 'Your request #7 (NOISE) is now REJECTED.',          7, TRUE,  DATE_SUB(NOW(), INTERVAL 5 DAY)),
+  (6,  1, 'REQUEST_STATUS', 'Your request #5 (WATER_LEAK) is now UNDER_REVIEW.', 5, TRUE,  DATE_SUB(NOW(), INTERVAL 4 DAY)),
+  (7,  1, 'REQUEST_STATUS', 'Your request #8 (STREETLIGHT) is now UNDER_REVIEW.', 8, TRUE, DATE_SUB(NOW(), INTERVAL 84 HOUR)),
+  (8,  1, 'REQUEST_STATUS', 'Your request #5 (WATER_LEAK) is now ASSIGNED.',     5, TRUE,  DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (9,  1, 'REQUEST_STATUS', 'Your request #8 (STREETLIGHT) is now ASSIGNED.',    8, TRUE,  DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (10, 1, 'REQUEST_STATUS', 'Your request #4 (POTHOLE) is now UNDER_REVIEW.',    4, TRUE,  DATE_SUB(NOW(), INTERVAL 54 HOUR)),
+  (11, 1, 'REQUEST_STATUS', 'Your request #4 (POTHOLE) is now ASSIGNED.',        4, FALSE, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+  (12, 1, 'REQUEST_STATUS', 'Your request #6 (GRAFFITI) is now RESOLVED.',       6, FALSE, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+  (13, 1, 'REQUEST_STATUS', 'Your request #3 (GRAFFITI) is now UNDER_REVIEW.',   3, FALSE, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+  (14, 1, 'REQUEST_STATUS', 'Your request #5 (WATER_LEAK) is now IN_PROGRESS.',  5, FALSE, DATE_SUB(NOW(), INTERVAL 1 DAY));
+
 -- Part 2 adds: events, request workflows, and a second worker.
 -- Part 3 adds: announcements (one EMERGENCY), transit routes, a couple of open flags.

@@ -12,7 +12,7 @@ const ROLE_FEATURES = {
     CITIZEN: ['Events', 'My Registrations', 'Report an Issue', 'My Requests', 'Transit', 'Notifications'],
     CITY_ADMINISTRATOR: ['Manage Events', 'Review Requests', 'Announcements', 'Flagged Content', 'Engagement Stats'],
     DEPARTMENT_MANAGER: ['Department Requests', 'Assign Tasks', 'Reports'],
-    WORKER: ['My Tasks']
+    WORKER: ['My Tasks', 'Notifications']
 };
 
 const notice = document.getElementById('notice');
@@ -34,7 +34,13 @@ function showUser(user) {
         button.className = 'button';
         button.type = 'button';
         button.textContent = feature;
+        button.dataset.feature = feature;
         button.addEventListener('click', () => {
+            document.getElementById('notifications-view').hidden = true;
+            if (feature === 'Notifications') {
+                openNotifications();
+                return;
+            }
             if (feature === 'Events' || feature === 'Manage Events') {
                 openEvents(false);
                 return;
@@ -55,6 +61,11 @@ function showUser(user) {
             notice.hidden = false;
         });
         nav.appendChild(button);
+    }
+    // Rebuilding the nav resets the button labels, so show the unread count again.
+    // notifications.js loads after this file, so the function may not exist yet on the first call.
+    if (typeof renderNotificationCount === 'function') {
+        renderNotificationCount();
     }
 }
 

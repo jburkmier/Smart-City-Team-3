@@ -158,10 +158,24 @@
             </form>
             <div id="request-list" class="request-list" aria-live="polite"></div>
         </section>
+
+        <section id="notifications-view" class="notifications-view" aria-labelledby="notifications-title" hidden>
+            <div class="section-heading">
+                <h2 id="notifications-title">Notifications</h2>
+                <div class="links">
+                    <button class="button" id="refresh-notifications" type="button">Refresh</button>
+                    <button class="button" id="mark-all-notifications" type="button">Mark all read</button>
+                    <button class="button" id="close-notifications" type="button">Back to home</button>
+                </div>
+            </div>
+            <p id="notifications-message" class="message" role="status" hidden></p>
+            <div id="notification-list" class="notification-list" aria-live="polite"></div>
+        </section>
     </main>
 
     <script src="js/api.js"></script>
     <script src="js/home.js"></script>
     <script src="js/events.js"></script>
+    <script src="js/notifications.js"></script>
 </body>
 </html>

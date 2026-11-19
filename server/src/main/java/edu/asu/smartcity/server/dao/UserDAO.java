@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /** SQL for the users table. Every query uses a PreparedStatement. */
@@ -29,6 +31,22 @@ public class UserDAO {
 
     public Optional<UserRecord> findById(int id) throws SQLException {
         return findOne("SELECT " + COLUMNS + " FROM users WHERE user_id = ?", id);
+    }
+
+    /** The IDs of every user with the role, in ID order (for example, every citizen to notify). */
+    public List<Integer> findIdsByRole(Role role) throws SQLException {
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT user_id FROM users WHERE role_id = ? ORDER BY user_id")) {
+            stmt.setInt(1, role.id());
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<Integer> ids = new ArrayList<>();
+                while (rs.next()) {
+                    ids.add(rs.getInt("user_id"));
+                }
+                return ids;
+            }
+        }
     }
 
     public boolean existsByEmail(String email) throws SQLException {

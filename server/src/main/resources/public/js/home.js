@@ -9,10 +9,11 @@ const ROLE_NAMES = {
 };
 
 const ROLE_FEATURES = {
-    CITIZEN: ['Events', 'My Registrations', 'Report an Issue', 'My Requests', 'Transit', 'Notifications'],
+    CITIZEN: ['Events', 'My Registrations', 'Report an Issue', 'My Requests', 'Transit', 'Notifications',
+        'Announcements'],
     CITY_ADMINISTRATOR: ['Manage Events', 'Review Requests', 'Announcements', 'Flagged Content', 'Engagement Stats'],
-    DEPARTMENT_MANAGER: ['Department Requests', 'Assign Tasks', 'Reports'],
-    WORKER: ['My Tasks', 'Notifications']
+    DEPARTMENT_MANAGER: ['Department Requests', 'Assign Tasks', 'Reports', 'Announcements'],
+    WORKER: ['My Tasks', 'Notifications', 'Announcements']
 };
 
 const notice = document.getElementById('notice');
@@ -37,8 +38,13 @@ function showUser(user) {
         button.dataset.feature = feature;
         button.addEventListener('click', () => {
             document.getElementById('notifications-view').hidden = true;
+            document.getElementById('announcements-view').hidden = true;
             if (feature === 'Notifications') {
                 openNotifications();
+                return;
+            }
+            if (feature === 'Announcements') {
+                openAnnouncements();
                 return;
             }
             if (feature === 'Events' || feature === 'Manage Events') {

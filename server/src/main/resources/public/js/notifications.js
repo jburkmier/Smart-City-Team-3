@@ -52,6 +52,7 @@ async function updateNotificationCount() {
 function openNotifications() {
     document.getElementById('events-view').hidden = true;
     document.getElementById('requests-view').hidden = true;
+    document.getElementById('announcements-view').hidden = true;
     document.getElementById('notice').hidden = true;
     document.getElementById('error').hidden = true;
     notificationsView.hidden = false;
@@ -82,14 +83,27 @@ async function loadNotifications() {
 }
 
 function createNotificationCard(notification) {
+    const emergency = notification.type === 'EMERGENCY_ALERT';
     const card = document.createElement('article');
-    card.className = notification.read ? 'notification-card' : 'notification-card notification-unread';
+    card.className = 'notification-card';
+    if (!notification.read) {
+        card.classList.add('notification-unread');
+    }
+    if (emergency) {
+        card.classList.add('emergency');
+    }
 
     const heading = document.createElement('h3');
     if (!notification.read) {
         const tag = document.createElement('span');
         tag.className = 'notification-tag';
         tag.textContent = 'New';
+        heading.appendChild(tag);
+    }
+    if (emergency) {
+        const tag = document.createElement('span');
+        tag.className = 'emergency-tag';
+        tag.textContent = 'Emergency';
         heading.appendChild(tag);
     }
     heading.appendChild(document.createTextNode(

@@ -124,5 +124,19 @@ INSERT INTO notifications (notification_id, user_id, type, message, related_id, 
   (13, 1, 'REQUEST_STATUS', 'Your request #3 (GRAFFITI) is now UNDER_REVIEW.',   3, FALSE, DATE_SUB(NOW(), INTERVAL 1 DAY)),
   (14, 1, 'REQUEST_STATUS', 'Your request #5 (WATER_LEAK) is now IN_PROGRESS.',  5, FALSE, DATE_SUB(NOW(), INTERVAL 1 DAY));
 
+-- Announcements posted by Morgan Chen (admin): one general, one emergency.
+INSERT INTO announcements (announcement_id, type, title, message, created_by, created_at) VALUES
+  (1, 'GENERAL', 'Library Hours Extended',
+   'All public libraries are now open until 9 PM on weekdays. Weekend hours are unchanged.',
+   2, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (2, 'EMERGENCY', 'Excessive Heat Warning',
+   'Temperatures above 110 degrees are expected. Stay hydrated, limit time outdoors between 10 AM and 6 PM, and check on neighbors. Cooling centers are open at all public libraries.',
+   2, DATE_SUB(NOW(), INTERVAL 6 HOUR));
+
+-- Posting an announcement notifies every citizen; Alex Rivera is the only seeded citizen.
+INSERT INTO notifications (notification_id, user_id, type, message, related_id, is_read, created_at) VALUES
+  (15, 1, 'ANNOUNCEMENT',    'New announcement: Library Hours Extended', 1, TRUE,  DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (16, 1, 'EMERGENCY_ALERT', 'Emergency alert: Excessive Heat Warning',  2, FALSE, DATE_SUB(NOW(), INTERVAL 6 HOUR));
+
 -- Part 2 adds: events, request workflows, and a second worker.
--- Part 3 adds: announcements (one EMERGENCY), transit routes, a couple of open flags.
+-- Part 3 adds: transit routes, a couple of open flags.

@@ -380,6 +380,91 @@ body {
     margin-top: 6px;
 }
 
+.announcements-view {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--accent-light-color);
+}
+
+/* The section's grid gap already spaces the heading. */
+.announcements-view .section-heading {
+    margin-bottom: 0;
+}
+
+.announcement-form {
+    display: grid;
+    gap: 12px;
+    max-width: 640px;
+}
+
+.announcement-form h3 {
+    margin: 0;
+}
+
+.announcement-form label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.announcement-form textarea {
+    resize: vertical;
+}
+
+.announcement-list {
+    display: grid;
+    gap: 12px;
+    max-width: 760px;
+}
+
+.announcement-card {
+    padding: 16px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.announcement-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+}
+
+.announcement-card p {
+    margin: 6px 0;
+}
+
+/* Keeps the line breaks the administrator typed. */
+.announcement-message {
+    white-space: pre-wrap;
+}
+
+.announcement-time {
+    font-size: 14px;
+}
+
+.announcement-card .button {
+    margin-top: 6px;
+}
+
+/* Emergency announcements and alerts: a red border plus an "Emergency" tag, so they don't rely on color alone.
+   Comes after .notification-unread so an unread emergency alert keeps the red border. */
+.emergency {
+    border-color: #B3261E;
+}
+
+.emergency-tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: #B3261E;
+    color: #fff;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
 @media (max-width: 480px) {
     .events-view {
         padding: 14px;
@@ -390,6 +475,10 @@ body {
     }
 
     .notifications-view {
+        padding: 16px;
+    }
+
+    .announcements-view {
         padding: 16px;
     }
 

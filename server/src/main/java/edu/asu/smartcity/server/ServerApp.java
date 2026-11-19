@@ -3,6 +3,7 @@ package edu.asu.smartcity.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import edu.asu.smartcity.server.dao.AnnouncementDAO;
 import edu.asu.smartcity.server.dao.DepartmentDAO;
 import edu.asu.smartcity.server.dao.EventDAO;
 import edu.asu.smartcity.server.dao.NotificationDAO;
@@ -10,12 +11,14 @@ import edu.asu.smartcity.server.dao.RequestDAO;
 import edu.asu.smartcity.server.dao.UserDAO;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.ErrorResponse;
+import edu.asu.smartcity.server.service.AnnouncementService;
 import edu.asu.smartcity.server.service.AuthService;
 import edu.asu.smartcity.server.service.DepartmentService;
 import edu.asu.smartcity.server.service.EventService;
 import edu.asu.smartcity.server.service.NotificationService;
 import edu.asu.smartcity.server.service.RequestService;
 import edu.asu.smartcity.server.session.SessionManager;
+import edu.asu.smartcity.server.web.AnnouncementController;
 import edu.asu.smartcity.server.web.ApiException;
 import edu.asu.smartcity.server.web.AuthController;
 import edu.asu.smartcity.server.web.AuthGuard;
@@ -72,6 +75,8 @@ public class ServerApp {
         NotificationService notificationService = new NotificationService(new NotificationDAO(database));
         NotificationController notificationController =
                 new NotificationController(notificationService, authGuard);
+        AnnouncementController announcementController = new AnnouncementController(
+                new AnnouncementService(new AnnouncementDAO(database), userDAO, notificationService), authGuard);
 
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
@@ -102,6 +107,9 @@ public class ServerApp {
         app.get("/api/me/notifications", notificationController::list);
         app.post("/api/me/notifications/read-all", notificationController::markAllRead);
         app.post("/api/me/notifications/{id}/read", notificationController::markRead);
+        app.get("/api/announcements", announcementController::list);
+        app.post("/api/announcements", announcementController::create);
+        app.delete("/api/announcements/{id}", announcementController::delete);
 
         // Javalin throws NotFoundResponse when no route or page matches. Unknown /api paths get
         // the api.md error format; missing pages keep Javalin's plain-text 404.

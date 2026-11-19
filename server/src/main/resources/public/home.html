@@ -159,6 +159,33 @@
             <div id="request-list" class="request-list" aria-live="polite"></div>
         </section>
 
+        <section id="announcements-view" class="announcements-view" aria-labelledby="announcements-title" hidden>
+            <div class="section-heading">
+                <h2 id="announcements-title">Announcements</h2>
+                <button class="button" id="close-announcements" type="button">Back to home</button>
+            </div>
+            <p id="announcements-message" class="message" role="status" hidden></p>
+            <form id="announcement-form" class="announcement-form" hidden>
+                <h3>Post an announcement</h3>
+                <label>Type
+                    <select class="field" name="type" required>
+                        <option value="GENERAL">General</option>
+                        <option value="EMERGENCY">Emergency</option>
+                    </select>
+                </label>
+                <label>Title
+                    <input class="field" name="title" maxlength="150" required>
+                </label>
+                <label>Message
+                    <textarea class="field" name="message" maxlength="2000" rows="4" required></textarea>
+                </label>
+                <div class="links">
+                    <button class="button" type="submit">Post announcement</button>
+                </div>
+            </form>
+            <div id="announcement-list" class="announcement-list" aria-live="polite"></div>
+        </section>
+
         <section id="notifications-view" class="notifications-view" aria-labelledby="notifications-title" hidden>
             <div class="section-heading">
                 <h2 id="notifications-title">Notifications</h2>
@@ -177,5 +204,6 @@
     <script src="js/home.js"></script>
     <script src="js/events.js"></script>
     <script src="js/notifications.js"></script>
+    <script src="js/announcements.js"></script>
 </body>
 </html>

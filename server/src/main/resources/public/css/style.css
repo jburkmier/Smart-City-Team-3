@@ -328,12 +328,68 @@ body {
     margin: 6px 0;
 }
 
+.notifications-view {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--accent-light-color);
+}
+
+.notification-list {
+    display: grid;
+    gap: 12px;
+    max-width: 760px;
+}
+
+/* Unread notifications get a "New" tag and a border, so they don't rely on color alone. */
+.notification-card {
+    padding: 16px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.notification-unread {
+    border-color: var(--text-color);
+}
+
+.notification-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+}
+
+.notification-card p {
+    margin: 6px 0;
+}
+
+.notification-tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: var(--text-color);
+    color: #fff;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.notification-time {
+    font-size: 14px;
+}
+
+.notification-card .button {
+    margin-top: 6px;
+}
+
 @media (max-width: 480px) {
     .events-view {
         padding: 14px;
     }
 
     .requests-view {
+        padding: 16px;
+    }
+
+    .notifications-view {
         padding: 16px;
     }
 

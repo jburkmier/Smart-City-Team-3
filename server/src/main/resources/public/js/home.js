@@ -170,10 +170,6 @@ document.getElementById('cancel-request').addEventListener('click', () => {
     openRequests(Session.user());
 });
 
-document.getElementById('close-requests').addEventListener('click', () => {
-    requestsView.hidden = true;
-});
-
 function createRequestCard(request, canReview, departments, departmentLoadError) {
     const card = document.createElement('article');
     card.className = 'request-card';

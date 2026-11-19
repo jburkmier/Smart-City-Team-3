@@ -70,7 +70,7 @@ INSERT INTO event_registrations (user_id, event_id) VALUES
   (1, 4),
   (1, 9);
 
--- Part 2 adds: ~8 service requests in every status, a second worker.
+
 -- Demo service requests for Alex Rivera, covering every request status.
 -- Department IDs match the demo departments above; task assignment is a separate feature.
 INSERT INTO service_requests
@@ -97,7 +97,7 @@ VALUES
    NULL, 'Graffiti removed and the wall repainted.', DATE_SUB(NOW(), INTERVAL 12 DAY),
    DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
   (7, 1, 'NOISE', 'Repeated noise complaint with no time or location details.',
-   'Location not provided', 'REJECTED', 1,
+   'Location not provided', 'REJECTED', NULL,
    'Please submit the location and approximate time of the noise.', NULL,
    DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), NULL),
   (8, 1, 'STREETLIGHT', 'The pedestrian crossing light is not illuminating.',

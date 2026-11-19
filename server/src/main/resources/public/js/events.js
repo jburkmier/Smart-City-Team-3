@@ -191,6 +191,9 @@ function createEventCard(event) {
         });
         actions.appendChild(cancel);
     }
+    if (user) {
+        addFlagButton(actions, 'EVENT', event.id);
+    }
     card.appendChild(actions);
     return card;
 }

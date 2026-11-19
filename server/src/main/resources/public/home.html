@@ -198,6 +198,30 @@
             <p id="notifications-message" class="message" role="status" hidden></p>
             <div id="notification-list" class="notification-list" aria-live="polite"></div>
         </section>
+
+        <section id="flags-view" class="flags-view" aria-labelledby="flags-title" hidden>
+            <div class="section-heading">
+                <h2 id="flags-title">Flagged Content</h2>
+                <button class="button" id="close-flags" type="button">Back to home</button>
+            </div>
+            <p id="flags-message" class="message" role="status" hidden></p>
+            <label>Show flags
+                <select class="field" id="flag-status">
+                    <option value="OPEN">Open</option>
+                    <option value="DISMISSED">Dismissed</option>
+                    <option value="REMOVED">Removed</option>
+                </select>
+            </label>
+            <form id="flags-edit-form" class="flags-edit-form" hidden>
+                <h3 id="flags-edit-title">Edit flagged content</h3>
+                <div id="flags-edit-fields" class="flags-edit-fields"></div>
+                <div class="links">
+                    <button class="button" type="submit">Save changes</button>
+                    <button class="button" id="cancel-flags-edit" type="button">Cancel</button>
+                </div>
+            </form>
+            <div id="flag-list" class="flag-list" aria-live="polite"></div>
+        </section>
     </main>
 
     <script src="js/api.js"></script>
@@ -205,5 +229,6 @@
     <script src="js/events.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/announcements.js"></script>
+    <script src="js/flags.js"></script>
 </body>
 </html>

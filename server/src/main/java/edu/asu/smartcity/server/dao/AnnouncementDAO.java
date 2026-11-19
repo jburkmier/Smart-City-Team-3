@@ -59,6 +59,25 @@ public class AnnouncementDAO {
         return query(COLUMNS + " WHERE is_deleted = FALSE ORDER BY created_at DESC, announcement_id DESC", null);
     }
 
+    /** Updates announcement content without resending the original announcement notification. */
+    public Optional<Announcement> update(int announcementId, AnnouncementType type, String title, String message)
+            throws SQLException {
+        String sql = """
+                UPDATE announcements
+                SET type = ?, title = ?, message = ?
+                WHERE announcement_id = ? AND is_deleted = FALSE
+                """;
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, type.name());
+            stmt.setString(2, title);
+            stmt.setString(3, message);
+            stmt.setInt(4, announcementId);
+            stmt.executeUpdate();
+        }
+        return findActiveById(announcementId);
+    }
+
     /** Hides an announcement. Returns false if it doesn't exist or was already deleted. */
     public boolean delete(int announcementId) throws SQLException {
         String sql = "UPDATE announcements SET is_deleted = TRUE WHERE announcement_id = ? AND is_deleted = FALSE";

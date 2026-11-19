@@ -134,20 +134,20 @@ CREATE TABLE notifications (
   notification_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id         INT          NOT NULL,
   type            ENUM('ANNOUNCEMENT','EMERGENCY_ALERT','REQUEST_STATUS',
-                       'TASK_ASSIGNED','EVENT_CANCELLED') NOT NULL,
+                       'TASK_ASSIGNED','EVENT_CANCELLED','FLAG_SUBMITTED') NOT NULL,
   message         VARCHAR(500) NOT NULL,
-  related_id      INT          NULL,                    -- request/event/announcement id
+  related_id      INT          NULL,                    -- related content id or flag id
   is_read         BOOLEAN      NOT NULL DEFAULT FALSE,
   created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(user_id),
   INDEX idx_notifications_user (user_id, is_read)
 );
 
--- content_id points at events or service_requests depending on content_type,
+-- content_id points at events, service_requests, or announcements depending on content_type,
 -- so it has no foreign key; the server validates that the content exists.
 CREATE TABLE flags (
   flag_id      INT AUTO_INCREMENT PRIMARY KEY,
-  content_type ENUM('EVENT','REQUEST') NOT NULL,
+  content_type ENUM('EVENT','REQUEST','ANNOUNCEMENT') NOT NULL,
   content_id   INT          NOT NULL,
   reason       VARCHAR(500) NOT NULL,
   flagged_by   INT          NOT NULL,

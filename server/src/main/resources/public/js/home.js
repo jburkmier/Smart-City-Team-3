@@ -11,7 +11,8 @@ const ROLE_NAMES = {
 const ROLE_FEATURES = {
     CITIZEN: ['Events', 'My Registrations', 'Report an Issue', 'My Requests', 'Transit', 'Notifications',
         'Announcements'],
-    CITY_ADMINISTRATOR: ['Manage Events', 'Review Requests', 'Announcements', 'Flagged Content', 'Engagement Stats'],
+    CITY_ADMINISTRATOR: ['Manage Events', 'Review Requests', 'Announcements', 'Notifications',
+        'Flagged Content', 'Engagement Stats'],
     DEPARTMENT_MANAGER: ['Department Requests', 'Assign Tasks', 'Reports', 'Announcements'],
     WORKER: ['My Tasks', 'Notifications', 'Announcements']
 };
@@ -39,12 +40,17 @@ function showUser(user) {
         button.addEventListener('click', () => {
             document.getElementById('notifications-view').hidden = true;
             document.getElementById('announcements-view').hidden = true;
+            document.getElementById('flags-view').hidden = true;
             if (feature === 'Notifications') {
                 openNotifications();
                 return;
             }
             if (feature === 'Announcements') {
                 openAnnouncements();
+                return;
+            }
+            if (feature === 'Flagged Content') {
+                openFlaggedContent();
                 return;
             }
             if (feature === 'Events' || feature === 'Manage Events') {
@@ -199,6 +205,10 @@ function createRequestCard(request, canReview, departments, departmentLoadError)
     }
     if (request.resolutionNotes) {
         appendRequestText(card, 'Resolution: ' + request.resolutionNotes);
+    }
+    const user = Session.user();
+    if (user && ['CITY_ADMINISTRATOR', 'DEPARTMENT_MANAGER', 'WORKER'].includes(user.role)) {
+        addFlagButton(card, 'REQUEST', request.id);
     }
     if (canReview && request.status === 'SUBMITTED') {
         const reviewButton = document.createElement('button');

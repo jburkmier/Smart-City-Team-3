@@ -35,20 +35,7 @@ public class AnnouncementService {
      * the failure keep their notification.
      */
     public AnnouncementDto create(AnnouncementCreateRequest request, int administratorId) throws SQLException {
-        Map<String, String> errors = new LinkedHashMap<>();
-        if (request == null) {
-            errors.put("request", "Request body is required.");
-        } else {
-            if (request.type() == null) {
-                errors.put("type", "Is required.");
-            }
-            validateText(request.title(), "title", MAX_TITLE_LENGTH, errors);
-            validateText(request.message(), "message", MAX_MESSAGE_LENGTH, errors);
-        }
-        if (!errors.isEmpty()) {
-            throw new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.", errors);
-        }
-
+        validate(request);
         Announcement announcement = announcements.create(request.type(), request.title().trim(),
                 request.message().trim(), administratorId);
         notifications.send(announcement, users.findIdsByRole(Role.CITIZEN));
@@ -57,6 +44,15 @@ public class AnnouncementService {
 
     public List<AnnouncementDto> findActive() throws SQLException {
         return announcements.findActive().stream().map(AnnouncementDto::from).toList();
+    }
+
+    /** Edits announcement content without sending a second notification to citizens. */
+    public AnnouncementDto update(int announcementId, AnnouncementCreateRequest request) throws SQLException {
+        validate(request);
+        Announcement announcement = announcements.update(announcementId, request.type(), request.title().trim(),
+                        request.message().trim())
+                .orElseThrow(() -> new ApiException(404, "NOT_FOUND", "Announcement not found."));
+        return AnnouncementDto.from(announcement);
     }
 
     /** Deletes an announcement; 404 if it doesn't exist or was already deleted. */
@@ -71,6 +67,22 @@ public class AnnouncementService {
             errors.put(field, "Is required.");
         } else if (value.trim().length() > maximumLength) {
             errors.put(field, "Must be at most " + maximumLength + " characters.");
+        }
+    }
+
+    private static void validate(AnnouncementCreateRequest request) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        if (request == null) {
+            errors.put("request", "Request body is required.");
+        } else {
+            if (request.type() == null) {
+                errors.put("type", "Is required.");
+            }
+            validateText(request.title(), "title", MAX_TITLE_LENGTH, errors);
+            validateText(request.message(), "message", MAX_MESSAGE_LENGTH, errors);
+        }
+        if (!errors.isEmpty()) {
+            throw new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.", errors);
         }
     }
 }

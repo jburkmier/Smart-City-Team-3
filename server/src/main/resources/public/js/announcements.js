@@ -88,6 +88,7 @@ function createAnnouncementCard(announcement) {
         });
         card.appendChild(deleteButton);
     }
+    addFlagButton(card, 'ANNOUNCEMENT', announcement.id);
     return card;
 }
 

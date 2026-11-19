@@ -344,6 +344,11 @@ Roles: `CITIZEN`. Created in `SUBMITTED`.
 
 - `201` → `RequestDto` · `400`
 
+### `PUT /requests/{id}`
+Roles: `CITY_ADMINISTRATOR`. Updates request type, description, and location without changing
+its status, department, or worker assignment. Uses the same field validation as `POST /requests`.
+- `200` → `RequestDto` · `400` · `403` · `404`
+
 ### `GET /me/requests`
 Roles: `CITIZEN`. The caller's own requests, newest first (Track Request Status).
 - `200` → `[ RequestDto, … ]`
@@ -448,6 +453,10 @@ Who can flag depends on the content type:
 |---|---|---|
 | `EVENT` | any logged-in user | Report an event as inappropriate/misleading |
 | `REQUEST` | `CITY_ADMINISTRATOR`, `DEPARTMENT_MANAGER`, `WORKER` | Report a request with abusive/spam content |
+| `ANNOUNCEMENT` | any logged-in user | Report an inappropriate or misleading announcement |
+
+Notifications are not flag targets. When a flag is submitted, every city administrator receives a
+`FLAG_SUBMITTED` notification whose `relatedId` is the new flag ID.
 
 ```json
 { "contentType": "REQUEST", "contentId": 41, "reason": "Offensive language in description." }
@@ -457,13 +466,15 @@ Who can flag depends on the content type:
 - `400` · `403` (e.g. a citizen flagging a request) · `404` (content not found) · `409 ALREADY_FLAGGED`
 
 #### `GET /flags`
-Roles: `CITY_ADMINISTRATOR`. Query `status` (default `OPEN`). `200` → `[ FlagDto, … ]`
+Roles: `CITY_ADMINISTRATOR`. Query `status` (`OPEN`, `DISMISSED`, or `REMOVED`; default `OPEN`).
+`200` → `[ FlagDto, … ]`
 
 #### `POST /flags/{id}/dismiss`
-Roles: `CITY_ADMINISTRATOR`. Content stays visible; flag → `DISMISSED`. `200` → `FlagDto`
+Roles: `CITY_ADMINISTRATOR`. Content stays visible; flag → `DISMISSED`. `200` → `FlagDto`;
+`403` · `404` · `409 INVALID_TRANSITION`
 
 #### `POST /flags/{id}/remove`
-Roles: `CITY_ADMINISTRATOR`. Content is hidden (event hidden from `/events`, request description shown as "[removed by administrator]"); flag → `REMOVED`. `200` → `FlagDto`
+Roles: `CITY_ADMINISTRATOR`. Content is hidden (event hidden from `/events`, request description shown as "[removed by administrator]", announcement removed from `/announcements`); flag → `REMOVED`. Only an `OPEN` flag can be moderated. `200` → `FlagDto`; `403` · `404` · `409 INVALID_TRANSITION`
 
 ### Announcements
 
@@ -486,6 +497,11 @@ Roles: `CITY_ADMINISTRATOR`.
 ```
 `type` required (`AnnouncementType`), `title` 1–150 chars, `message` 1–2000 chars.
 - `201` → `AnnouncementDto`. Every citizen gets a notification (`ANNOUNCEMENT` or `EMERGENCY_ALERT`).
+
+#### `PUT /announcements/{id}`
+Roles: `CITY_ADMINISTRATOR`. Updates an active announcement's type, title, and message. Does not
+send another announcement notification. Uses the same field validation as `POST /announcements`.
+- `200` → `AnnouncementDto` · `400` · `403` · `404`
 
 #### `GET /announcements`
 Roles: any logged-in user. Newest first. `200` → `[ AnnouncementDto, … ]`
@@ -517,6 +533,7 @@ Roles: `CITY_ADMINISTRATOR`. Removes an outdated or mistaken announcement from `
 | `REQUEST_STATUS` | any request state change | the request's citizen |
 | `TASK_ASSIGNED` | `PUT /requests/{id}/task` | the (new) worker |
 | `EVENT_CANCELLED` | `DELETE /events/{id}` | registered citizens |
+| `FLAG_SUBMITTED` | `POST /flags` | all city administrators (`relatedId` is the flag ID) |
 
 #### `GET /me/notifications`
 Roles: any logged-in user. Query `unreadOnly=true` (optional). Newest first.
@@ -600,6 +617,7 @@ Roles: any logged-in user. Read-only seeded data (Check Public Transit Schedule)
 | `POST /events`, `PUT/DELETE /events/{id}` | | ✓ | | |
 | `POST/DELETE /events/{id}/registration` | ✓ | | | |
 | `POST /requests` | ✓ | | | |
+| `PUT /requests/{id}` | | ✓ | | |
 | `GET /requests` | | all | own dept | |
 | `GET /requests/{id}` | own | ✓ | own dept | assigned |
 | review / assign / reject | | ✓ | | |
@@ -609,8 +627,10 @@ Roles: any logged-in user. Read-only seeded data (Check Public Transit Schedule)
 | `GET /departments/{id}/workers` | | ✓ | own dept | |
 | `POST /flags` (`EVENT`) | ✓ | ✓ | ✓ | ✓ |
 | `POST /flags` (`REQUEST`) | | ✓ | ✓ | ✓ |
+| `POST /flags` (`ANNOUNCEMENT`) | ✓ | ✓ | ✓ | ✓ |
 | `GET /flags`, dismiss / remove | | ✓ | | |
 | `POST /announcements`, `DELETE /announcements/{id}` | | ✓ | | |
+| `PUT /announcements/{id}` | | ✓ | | |
 | `GET /announcements` | ✓ | ✓ | ✓ | ✓ |
 | `GET /reports/engagement` | | ✓ | | |
 | `GET /reports/departments/{id}` | | any | own dept | |

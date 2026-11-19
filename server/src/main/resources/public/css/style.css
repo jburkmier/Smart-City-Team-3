@@ -196,9 +196,15 @@ body {
 }
 
 .requests-view {
+    display: grid;
+    gap: 16px;
     padding: 20px;
     border-radius: 12px;
     background-color: var(--accent-light-color);
+}
+
+.requests-view .section-heading {
+    margin-bottom: 0;
 }
 
 .section-heading {
@@ -252,7 +258,7 @@ body {
 .event-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 12px;
     margin-top: 6px;
 }
 
@@ -326,6 +332,93 @@ body {
 
 .request-card p {
     margin: 6px 0;
+}
+
+.flags-view {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--accent-light-color);
+}
+
+.flags-view .section-heading {
+    margin-bottom: 0;
+}
+
+.flag-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.flag-card {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.flag-card h3 {
+    margin: 0 0 4px;
+}
+
+.flag-card p {
+    margin: 6px 0;
+}
+
+.flag-card .button {
+    margin-top: 6px;
+}
+
+.request-card > .button,
+.announcement-card > .button,
+.notification-card > .button,
+.flag-card > .button {
+    margin-right: 8px;
+}
+
+.flags-edit-form {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    max-width: 960px;
+}
+
+.flags-edit-form h3 {
+    margin: 0;
+}
+
+.flags-edit-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    align-items: end;
+    gap: 12px;
+}
+
+.flags-edit-fields label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.flags-edit-fields textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 180px;
+    resize: vertical;
+}
+
+.flags-edit-field-wide {
+    grid-column: 1 / -1;
+}
+
+.flags-edit-form .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .notifications-view {
@@ -471,6 +564,10 @@ body {
     }
 
     .requests-view {
+        padding: 16px;
+    }
+
+    .flags-view {
         padding: 16px;
     }
 

@@ -30,6 +30,12 @@ public class AnnouncementController {
         ctx.status(201).json(announcementService.create(readRequest(ctx), administratorId));
     }
 
+    /** PUT /api/announcements/{id}: edits content without resending the announcement notification. */
+    public void update(Context ctx) throws SQLException {
+        guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
+        ctx.json(announcementService.update(announcementId(ctx), readRequest(ctx)));
+    }
+
     /** DELETE /api/announcements/{id}: removes an announcement from the list; sent notifications stay. */
     public void delete(Context ctx) throws SQLException {
         guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);

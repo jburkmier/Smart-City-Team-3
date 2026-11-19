@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
@@ -48,6 +49,16 @@ public class AnnouncementServiceTest {
         public boolean delete(int announcementId) {
             deletedId = announcementId;
             return exists;
+        }
+
+        @Override
+        public Optional<Announcement> update(int announcementId, AnnouncementType type, String title, String message) {
+            if (!exists) {
+                return Optional.empty();
+            }
+            saved = new Announcement(announcementId, type, title, message, 2,
+                    LocalDateTime.of(2026, 11, 18, 9, 0));
+            return Optional.of(saved);
         }
     }
 
@@ -186,6 +197,28 @@ public class AnnouncementServiceTest {
 
         assertEquals("Must be at most 150 characters.", e.fields().get("title"));
         assertEquals("Must be at most 2000 characters.", e.fields().get("message"));
+    }
+
+    @Test
+    public void updateEditsAnnouncementWithoutSendingAnotherNotification() throws SQLException {
+        AnnouncementDto updated = service.update(2,
+                new AnnouncementCreateRequest(AnnouncementType.GENERAL, "  Updated title  ", "  Updated message  "));
+
+        assertEquals(2, updated.id());
+        assertEquals("Updated title", updated.title());
+        assertEquals("Updated message", updated.message());
+        assertTrue(notificationDAO.userIds.isEmpty());
+    }
+
+    @Test
+    public void updateOfMissingAnnouncementReturnsNotFound() {
+        announcementDAO.exists = false;
+
+        ApiException error = assertThrows(ApiException.class, () -> service.update(99,
+                new AnnouncementCreateRequest(AnnouncementType.GENERAL, "Title", "Message")));
+
+        assertEquals(404, error.status());
+        assertTrue(notificationDAO.userIds.isEmpty());
     }
 
     @Test

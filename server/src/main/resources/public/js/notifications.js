@@ -3,14 +3,15 @@
 // The nav button shows the unread count, for example "Notifications (3)".
 
 // Only these roles receive notifications (docs/api.md notification table), so only they see the button.
-const NOTIFICATION_ROLES = ['CITIZEN', 'WORKER'];
+const NOTIFICATION_ROLES = ['CITIZEN', 'CITY_ADMINISTRATOR', 'WORKER'];
 
 const NOTIFICATION_TYPE_NAMES = {
     ANNOUNCEMENT: 'Announcement',
     EMERGENCY_ALERT: 'Emergency alert',
     REQUEST_STATUS: 'Request update',
     TASK_ASSIGNED: 'Task assigned',
-    EVENT_CANCELLED: 'Event cancelled'
+    EVENT_CANCELLED: 'Event cancelled',
+    FLAG_SUBMITTED: 'New content flag'
 };
 
 const notificationsView = document.getElementById('notifications-view');
@@ -118,6 +119,15 @@ function createNotificationCard(notification) {
     time.className = 'notification-time';
     time.textContent = new Date(notification.createdAt).toLocaleString();
     card.appendChild(time);
+
+    if (notification.type === 'FLAG_SUBMITTED' && isAdministrator()) {
+        const reviewButton = document.createElement('button');
+        reviewButton.className = 'button';
+        reviewButton.type = 'button';
+        reviewButton.textContent = 'Review flagged content';
+        reviewButton.addEventListener('click', () => openFlaggedContent(notification.relatedId));
+        card.appendChild(reviewButton);
+    }
 
     if (!notification.read) {
         const markReadButton = document.createElement('button');

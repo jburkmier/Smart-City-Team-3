@@ -33,6 +33,12 @@ public class RequestController {
         ctx.status(201).json(requestService.create(readRequest(ctx), citizenId));
     }
 
+    /** PUT /api/requests/{id}: city administrators can edit request content without changing its status. */
+    public void update(Context ctx) throws SQLException {
+        guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
+        ctx.json(requestService.updateContent(requestId(ctx), readRequest(ctx)));
+    }
+
     /** POST /api/requests/{id}/review: moves a submitted request to under review. */
     public void review(Context ctx) throws SQLException {
         guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);

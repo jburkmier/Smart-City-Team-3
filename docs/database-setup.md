@@ -55,4 +55,4 @@ SELECT u.email, r.role_name, LEFT(u.password_hash, 4) AS hash_prefix
 FROM smartcity.users u JOIN smartcity.roles r ON r.role_id = u.role_id;
 ```
 
-Expect 4 rows, each with `hash_prefix` = `$2a$`.
+Expect 8 rows, each with `hash_prefix` = `$2a$`.

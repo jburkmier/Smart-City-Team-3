@@ -25,6 +25,7 @@ public class RequestServiceTest {
         private RequestDto current;
         private boolean conflictOnUpdate;
         private boolean validDepartment = true;
+        private boolean contentUpdateSucceeds = true;
 
         FakeRequestDAO() {
             super(null);
@@ -41,6 +42,18 @@ public class RequestServiceTest {
         @Override
         public Optional<RequestDto> findById(int requestId) {
             return Optional.ofNullable(current);
+        }
+
+        @Override
+        public boolean updateContent(int requestId, RequestType type, String description, String location) {
+            if (!contentUpdateSucceeds || current == null) {
+                return false;
+            }
+            current = new RequestDto(current.id(), type, description, location, current.status(),
+                    current.citizenId(), current.citizenName(), current.departmentId(), current.departmentName(),
+                    current.assignedWorkerId(), current.assignedWorkerName(), current.rejectionReason(),
+                    current.resolutionNotes(), current.submittedAt(), current.updatedAt(), current.resolvedAt());
+            return true;
         }
 
         @Override
@@ -147,6 +160,32 @@ public class RequestServiceTest {
 
         assertTrue(error.fields().containsKey("request"));
         assertNull(requests.saved);
+    }
+
+    @Test
+    public void updateContentTrimsFieldsAndPreservesWorkflowState() throws Exception {
+        requests.current = requests.requestDto(RequestStatus.IN_PROGRESS, 1);
+
+        RequestDto response = service.updateContent(2,
+                new RequestCreateRequest(RequestType.GRAFFITI, "  New description  ", "  New location  "));
+
+        assertEquals(RequestType.GRAFFITI, response.type());
+        assertEquals("New description", response.description());
+        assertEquals("New location", response.location());
+        assertEquals(RequestStatus.IN_PROGRESS, response.status());
+        assertEquals(Integer.valueOf(1), response.departmentId());
+    }
+
+    @Test
+    public void updateContentReturnsNotFoundWhenRequestDoesNotExist() {
+        requests.current = null;
+        requests.contentUpdateSucceeds = false;
+
+        ApiException error = assertThrows(ApiException.class, () -> service.updateContent(99,
+                new RequestCreateRequest(RequestType.OTHER, "Description", "Location")));
+
+        assertEquals(404, error.status());
+        assertEquals("NOT_FOUND", error.code());
     }
 
     @Test

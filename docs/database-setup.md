@@ -43,6 +43,7 @@ All passwords are `password123`.
 | `admin@smartcity.test` | City Administrator |
 | `publicworks.manager@smartcity.test` | Department Manager (Public Works) |
 | `publicworks.worker@smartcity.test` | Worker (Public Works) |
+| `publicworks.worker2@smartcity.test` | Worker (Public Works) |
 | `utilities.manager@smartcity.test` | Department Manager (Utilities) |
 | `utilities.worker@smartcity.test` | Worker (Utilities) |
 | `parks.manager@smartcity.test` | Department Manager (Parks & Recreation) |
@@ -55,4 +56,4 @@ SELECT u.email, r.role_name, LEFT(u.password_hash, 4) AS hash_prefix
 FROM smartcity.users u JOIN smartcity.roles r ON r.role_id = u.role_id;
 ```
 
-Expect 8 rows, each with `hash_prefix` = `$2a$`.
+Expect 9 rows, each with `hash_prefix` = `$2a$`.

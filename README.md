@@ -29,12 +29,15 @@ All passwords are `password123`.
 | admin@smartcity.test | City Administrator |
 | publicworks.manager@smartcity.test | Department Manager (Public Works) |
 | publicworks.worker@smartcity.test | Worker (Public Works) |
+| publicworks.worker2@smartcity.test | Worker (Public Works) |
 | utilities.manager@smartcity.test | Department Manager (Utilities) |
 | utilities.worker@smartcity.test | Worker (Utilities) |
 | parks.manager@smartcity.test | Department Manager (Parks & Recreation) |
 | parks.worker@smartcity.test | Worker (Parks & Recreation) |
 
 New accounts created on the Register page are always Citizens.
+
+Department managers use **Assign Tasks** to assign or reassign a worker and start or resolve work. **Department Requests** is for viewing requests; worker task actions are not shown there. The current assignee is highlighted in each task card.
 
 ## Commands
   - `./gradlew build` builds the server and runs the tests

@@ -9,4 +9,9 @@ public class AssignedState extends RequestState {
     public RequestStatus getStatus() {
         return RequestStatus.ASSIGNED;
     }
+
+    @Override
+    public RequestState start() {
+        return new InProgressState();
+    }
 }

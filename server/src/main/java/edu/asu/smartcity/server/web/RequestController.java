@@ -6,6 +6,8 @@ import edu.asu.smartcity.server.dto.RequestAssignRequest;
 import edu.asu.smartcity.server.dto.RequestCreateRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
 import edu.asu.smartcity.server.dto.RequestRejectRequest;
+import edu.asu.smartcity.server.dto.RequestResolveRequest;
+import edu.asu.smartcity.server.dto.TaskAssignRequest;
 import edu.asu.smartcity.server.model.RequestStatus;
 import edu.asu.smartcity.server.model.RequestType;
 import edu.asu.smartcity.server.model.Role;
@@ -55,6 +57,31 @@ public class RequestController {
     public void reject(Context ctx) throws SQLException {
         guard.requireRole(ctx, Role.CITY_ADMINISTRATOR);
         ctx.json(requestService.reject(requestId(ctx), readRejection(ctx)));
+    }
+
+    /** PUT /api/requests/{id}/task: assigns or reassigns a worker within the manager's department. */
+    public void assignTask(Context ctx) throws SQLException {
+        SystemUser manager = guard.requireRole(ctx, Role.DEPARTMENT_MANAGER);
+        var result = requestService.assignTask(requestId(ctx), readTaskAssignment(ctx), manager);
+        ctx.status(result.created() ? 201 : 200).json(result.task());
+    }
+
+    /** GET /api/me/tasks: the authenticated worker's assigned tasks. */
+    public void myTasks(Context ctx) throws SQLException {
+        int workerId = guard.requireRole(ctx, Role.WORKER).getUserId();
+        ctx.json(requestService.findMyTasks(workerId));
+    }
+
+    /** POST /api/requests/{id}/start: begins work on an assigned request. */
+    public void start(Context ctx) throws SQLException {
+        SystemUser caller = guard.requireRole(ctx, Role.WORKER, Role.DEPARTMENT_MANAGER);
+        ctx.json(requestService.start(requestId(ctx), caller));
+    }
+
+    /** POST /api/requests/{id}/resolve: resolves an in-progress request. */
+    public void resolve(Context ctx) throws SQLException {
+        SystemUser caller = guard.requireRole(ctx, Role.WORKER, Role.DEPARTMENT_MANAGER);
+        ctx.json(requestService.resolve(requestId(ctx), readResolution(ctx), caller));
     }
 
     /** GET /api/me/requests: the authenticated citizen's requests. */
@@ -118,6 +145,33 @@ public class RequestController {
             RequestRejectRequest rejection = ctx.bodyAsClass(RequestRejectRequest.class);
             if (rejection != null) {
                 return rejection;
+            }
+        } catch (Exception e) {
+            throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+        }
+        throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+    }
+
+    private static TaskAssignRequest readTaskAssignment(Context ctx) {
+        try {
+            TaskAssignRequest assignment = ctx.bodyAsClass(TaskAssignRequest.class);
+            if (assignment != null) {
+                return assignment;
+            }
+        } catch (Exception e) {
+            throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+        }
+        throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");
+    }
+
+    private static RequestResolveRequest readResolution(Context ctx) {
+        if (ctx.body().isBlank()) {
+            return new RequestResolveRequest(null);
+        }
+        try {
+            RequestResolveRequest resolution = ctx.bodyAsClass(RequestResolveRequest.class);
+            if (resolution != null) {
+                return resolution;
             }
         } catch (Exception e) {
             throw new ApiException(400, "VALIDATION_FAILED", "The request body must be valid JSON.");

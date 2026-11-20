@@ -305,7 +305,10 @@ Review is a required step: an administrator must review a request before it can 
 - Each action calls the matching method on the request's current `RequestState`. If the state doesn't allow it → `409 INVALID_TRANSITION`, e.g. `"Cannot resolve a request that is SUBMITTED."`
 - Wrong role → `403 FORBIDDEN`.
 - **The request's `status` is the only status in the system.** Tasks don't have their own status.
-- Every successful action returns `200` → updated `RequestDto`. *(Part 3: also notifies the citizen through the Observer pattern.)*
+- A department manager may start or resolve requests only within their own department; a worker may do so only when assigned to the request.
+- Starting requires a worker task assignment.
+- Every successful action notifies the request's citizen (`REQUEST_STATUS`) through the Observer pattern.
+- Every successful action returns `200` → updated `RequestDto`.
 
 ### `RequestDto`
 ```json
@@ -384,13 +387,13 @@ No body. `200` → `RequestDto`
 `reason` required, 1–500 chars. `200` → `RequestDto`
 
 ### `POST /requests/{id}/start` *(Part 3)*
-No body. Requires a worker to be assigned ([`PUT /requests/{id}/task`](#put-requestsidtask)), otherwise `409 INVALID_TRANSITION`. `200` → `RequestDto`
+No body. Requires a worker to be assigned ([`PUT /requests/{id}/task`](#put-requestsidtask)), otherwise `409 INVALID_TRANSITION`. Notifies the citizen when successful. `200` → `RequestDto`
 
 ### `POST /requests/{id}/resolve` *(Part 3)*
 ```json
 { "resolutionNotes": "Patched and sealed." }
 ```
-`resolutionNotes` optional, ≤ 1000 chars. `200` → `RequestDto`
+The body may be omitted. `resolutionNotes` is optional, ≤ 1000 chars. Notifies the citizen when successful. `200` → `RequestDto`
 
 ---
 

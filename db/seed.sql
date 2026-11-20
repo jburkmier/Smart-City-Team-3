@@ -6,6 +6,7 @@
 --   admin@smartcity.test                 CITY_ADMINISTRATOR
 --   publicworks.manager@smartcity.test   DEPARTMENT_MANAGER (Public Works)
 --   publicworks.worker@smartcity.test    WORKER             (Public Works)
+--   publicworks.worker2@smartcity.test   WORKER             (Public Works)
 --   utilities.manager@smartcity.test     DEPARTMENT_MANAGER (Utilities)
 --   utilities.worker@smartcity.test      WORKER             (Utilities)
 --   parks.manager@smartcity.test         DEPARTMENT_MANAGER (Parks & Recreation)
@@ -35,7 +36,8 @@ INSERT INTO users (user_id, name, email, password_hash, role_id, address, phone,
   (5, 'Reed Richards', 'utilities.manager@smartcity.test', '$2a$10$O9qsVKG2rXLlclsAJ.fOtO3Ex08FflubHILHrT4YntVjRSoVJpNiK', 3, NULL, NULL, 2, NULL),
   (6, 'Johnny Storm',  'utilities.worker@smartcity.test',  '$2a$10$T4WqA.2c01TW37.ULNajdOQrxMb00HLYqSJLsKOqzoMtoX9dt1U/W', 4, NULL, NULL, 2, 'Water and electrical'),
   (7, 'Sue Storm',     'parks.manager@smartcity.test',     '$2a$10$rk706dPVY9RCat4YnN2m5uAkH.0EBt1ifu77rD3UUvLjCXJhoCPEa', 3, NULL, NULL, 3, NULL),
-  (8, 'Ben Grimm',     'parks.worker@smartcity.test',      '$2a$10$GA0D/H39uGkCXItiy35SYOHfaU597iS1Z.XOfdUHii7bLE99wQOpe', 4, NULL, NULL, 3, 'Landscaping');
+  (8, 'Ben Grimm',     'parks.worker@smartcity.test',      '$2a$10$GA0D/H39uGkCXItiy35SYOHfaU597iS1Z.XOfdUHii7bLE99wQOpe', 4, NULL, NULL, 3, 'Landscaping'),
+  (9, 'Casey Nguyen',  'publicworks.worker2@smartcity.test', '$2a$10$opvAWwRxqPcyh2eKisrvpu23XBBF/6d6x3L4uyf8U6p.6o5OvZo.W', 4, NULL, NULL, 1, 'Road maintenance');
 
 -- Events span all six categories and five districts, with both free and paid options.
 -- Relative dates keep upcoming events current; past registrations demonstrate the
@@ -72,7 +74,7 @@ INSERT INTO event_registrations (user_id, event_id) VALUES
 
 
 -- Demo service requests for Alex Rivera, covering every request status.
--- Department IDs match the demo departments above; task assignment is a separate feature.
+-- Department IDs match the demo departments above; eligible requests receive tasks below.
 INSERT INTO service_requests
   (request_id, citizen_id, type, description, location, status, department_id,
    rejection_reason, resolution_notes, submitted_at, updated_at, resolved_at)
@@ -103,6 +105,12 @@ VALUES
   (8, 1, 'STREETLIGHT', 'The pedestrian crossing light is not illuminating.',
    'Broadway Rd and 7th St', 'ASSIGNED', 1,
    NULL, NULL, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 3 DAY), NULL);
+
+-- Initial worker assignments make the assigned and in-progress requests actionable.
+INSERT INTO tasks (task_id, request_id, worker_id, assigned_by, notes, assigned_at) VALUES
+  (1, 4, 4, 3, 'Inspect the road surface and prepare a repair.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+  (2, 5, 6, 5, 'Check the source of the water leak.', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (3, 8, 4, 3, 'Inspect the pedestrian crossing light.', DATE_SUB(NOW(), INTERVAL 3 DAY));
 
 -- Alex Rivera's request-status notifications: one per status change of the requests above,
 -- timed between each request's submitted_at and updated_at. The newest ones are unread.
@@ -139,7 +147,7 @@ INSERT INTO notifications (notification_id, user_id, type, message, related_id, 
   (16, 1, 'EMERGENCY_ALERT', 'Emergency alert: Excessive Heat Warning',  2, FALSE, DATE_SUB(NOW(), INTERVAL 6 HOUR));
 
 -- Part 2 adds: events, request workflows, and a second worker.
--- Part 3 adds: transit routes and sample flagged content.
+-- Part 3 adds: task assignments, transit routes, and sample flagged content.
 
 -- Six sample flags cover each moderation status and all supported content types.
 -- Removed flags also hide their content, matching the administrator moderation behavior.
@@ -174,3 +182,12 @@ INSERT INTO notifications (notification_id, user_id, type, message, related_id, 
    DATE_SUB(NOW(), INTERVAL 4 DAY)),
   (22, 2, 'FLAG_SUBMITTED', 'New content flag #6: Library Hours Extended', 6, TRUE,
    DATE_SUB(NOW(), INTERVAL 5 DAY));
+
+-- Task assignments are delivered to each currently assigned worker.
+INSERT INTO notifications (notification_id, user_id, type, message, related_id, is_read, created_at) VALUES
+  (23, 4, 'TASK_ASSIGNED', 'You have been assigned to request #4 (POTHOLE).', 4, FALSE,
+   DATE_SUB(NOW(), INTERVAL 2 DAY)),
+  (24, 6, 'TASK_ASSIGNED', 'You have been assigned to request #5 (WATER_LEAK).', 5, FALSE,
+   DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (25, 4, 'TASK_ASSIGNED', 'You have been assigned to request #8 (STREETLIGHT).', 8, FALSE,
+   DATE_SUB(NOW(), INTERVAL 3 DAY));

@@ -167,6 +167,47 @@ public class RequestDAO {
         }
     }
 
+    /** Starts an assigned request only when its worker task exists. */
+    public boolean start(int requestId, Integer assignedWorkerId) throws SQLException {
+        String workerConstraint = assignedWorkerId == null ? "" : " AND tasks.worker_id = ?";
+        String sql = """
+                UPDATE service_requests
+                SET status = 'IN_PROGRESS'
+                WHERE request_id = ? AND status = 'ASSIGNED'
+                  AND EXISTS (SELECT 1 FROM tasks WHERE tasks.request_id = service_requests.request_id
+                """ + workerConstraint + ")";
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, requestId);
+            if (assignedWorkerId != null) {
+                stmt.setInt(2, assignedWorkerId);
+            }
+            return stmt.executeUpdate() == 1;
+        }
+    }
+
+    /** Resolves an in-progress request and records the completion time and optional notes. */
+    public boolean resolve(int requestId, String resolutionNotes, Integer assignedWorkerId) throws SQLException {
+        String workerConstraint = assignedWorkerId == null ? "" : """
+                  AND EXISTS (SELECT 1 FROM tasks
+                              WHERE tasks.request_id = service_requests.request_id AND tasks.worker_id = ?)
+                """;
+        String sql = """
+                UPDATE service_requests
+                SET status = 'RESOLVED', resolution_notes = ?, resolved_at = CURRENT_TIMESTAMP
+                WHERE request_id = ? AND status = 'IN_PROGRESS'
+                """ + workerConstraint;
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, resolutionNotes);
+            stmt.setInt(2, requestId);
+            if (assignedWorkerId != null) {
+                stmt.setInt(3, assignedWorkerId);
+            }
+            return stmt.executeUpdate() == 1;
+        }
+    }
+
     /** Returns all requests visible to an administrator, optionally filtered. */
     public List<RequestDto> findForAdministrator(RequestStatus status, RequestType type, Integer departmentId)
             throws SQLException {
@@ -220,7 +261,7 @@ public class RequestDAO {
         }
     }
 
-    private static RequestDto toDto(ResultSet rs) throws SQLException {
+    static RequestDto toDto(ResultSet rs) throws SQLException {
         return new RequestDto(
                 rs.getInt("request_id"),
                 RequestType.valueOf(rs.getString("type")),

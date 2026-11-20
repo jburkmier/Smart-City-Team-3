@@ -50,6 +50,13 @@ public class AuthServiceTest {
         }
 
         @Override
+        public void recordLogin(int userId) {
+            lastLoginUserId = userId;
+        }
+
+        int lastLoginUserId;
+
+        @Override
         public int create(String name, String email, String passwordHash, Role role, String address, String phone) {
             int id = nextId++;
             byEmail.put(email, new UserRecord(id, name, email, passwordHash, role, address, phone, null, null));
@@ -153,6 +160,7 @@ public class AuthServiceTest {
         assertEquals(Role.WORKER, response.user().role());
         assertEquals(Integer.valueOf(1), response.user().departmentId());
         assertTrue(sessions.getUser(response.token()) instanceof Worker);
+        assertEquals(4, users.lastLoginUserId);
     }
 
     @Test
@@ -167,6 +175,7 @@ public class AuthServiceTest {
             assertEquals("INVALID_CREDENTIALS", e.code());
             assertEquals("Invalid email or password.", e.getMessage());
         }
+        assertEquals(0, users.lastLoginUserId);
     }
 
     @Test

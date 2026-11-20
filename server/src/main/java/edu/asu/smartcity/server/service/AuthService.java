@@ -106,6 +106,7 @@ public class AuthService {
         if (row.isEmpty() || !PasswordHasher.matches(password, row.get().passwordHash())) {
             throw new ApiException(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS);
         }
+        users.recordLogin(row.get().id());
         SystemUser user = UserCreators.forRole(row.get().role()).loadUser(row.get());
         String token = sessions.login(user);
         return new LoginResponse(token, UserMapper.toDto(user));

@@ -21,6 +21,25 @@
         <p id="notice" class="message message-info" role="status" hidden></p>
         <p id="error" class="message message-error" role="alert" hidden></p>
 
+        <section id="reports-view" class="reports-view" aria-labelledby="reports-title" hidden>
+            <div class="section-heading">
+                <h2 id="reports-title">Reports</h2>
+                <button class="button" id="close-reports" type="button">Back to home</button>
+            </div>
+            <p id="reports-message" class="message message-error" role="alert" hidden></p>
+            <form id="department-report-form" class="department-report-form" hidden>
+                <label for="department-report-id">Department report</label>
+                <select class="field" id="department-report-id" required>
+                    <option value="">Choose a department</option>
+                </select>
+                <button class="button" type="submit">Generate report</button>
+            </form>
+            <p id="report-generated-at" class="report-generated-at"></p>
+            <div id="report-metrics" class="report-metrics" aria-live="polite"></div>
+            <div id="report-breakdowns" class="report-breakdowns"></div>
+            <button class="button" id="back-to-main-report" type="button" hidden>Back to City Engagement Report</button>
+        </section>
+
         <section id="events-view" class="events-view" aria-labelledby="events-title" hidden>
             <div class="section-heading">
                 <h2 id="events-title">Community Events</h2>
@@ -230,5 +249,6 @@
     <script src="js/notifications.js"></script>
     <script src="js/announcements.js"></script>
     <script src="js/flags.js"></script>
+    <script src="js/reports.js"></script>
 </body>
 </html>

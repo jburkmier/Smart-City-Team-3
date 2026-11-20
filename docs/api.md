@@ -259,7 +259,7 @@ Roles: `CITY_ADMINISTRATOR`. Same body and rules as `POST`. *(Optional, cut firs
 - `200` → `EventDto` · `400` · `403` · `404`
 
 ### `DELETE /events/{id}`
-Roles: `CITY_ADMINISTRATOR`. Soft delete: the event is marked cancelled and disappears from `GET /events`. *(Part 3: registered citizens get an `EVENT_CANCELLED` notification.)*
+Roles: `CITY_ADMINISTRATOR`. Soft delete: the event is marked cancelled and disappears from `GET /events`. Every registered citizen gets an `EVENT_CANCELLED` notification.
 - `204` · `403` · `404`
 
 ### `POST /events/{id}/registration`

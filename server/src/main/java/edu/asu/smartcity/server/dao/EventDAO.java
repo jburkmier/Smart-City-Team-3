@@ -128,6 +128,33 @@ public class EventDAO {
         }
     }
 
+    /** Returns the event's title, including cancelled or hidden events. */
+    public Optional<String> findTitle(int eventId) throws SQLException {
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT title FROM events WHERE event_id = ?")) {
+            stmt.setInt(1, eventId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? Optional.of(rs.getString("title")) : Optional.empty();
+            }
+        }
+    }
+
+    /** Returns the IDs of every user registered for the event. */
+    public List<Integer> findRegisteredUserIds(int eventId) throws SQLException {
+        List<Integer> userIds = new ArrayList<>();
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT user_id FROM event_registrations WHERE event_id = ?")) {
+            stmt.setInt(1, eventId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    userIds.add(rs.getInt("user_id"));
+                }
+            }
+        }
+        return userIds;
+    }
+
     /** Registers a citizen if the event is visible and has not started yet. */
     public boolean register(int eventId, int userId) throws SQLException {
         String sql = """

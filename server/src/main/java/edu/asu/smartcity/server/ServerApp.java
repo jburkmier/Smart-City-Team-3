@@ -76,7 +76,8 @@ public class ServerApp {
         HealthController healthController = new HealthController(database);
         AuthController authController = new AuthController(authService, authGuard);
         EventDAO eventDAO = new EventDAO(database);
-        EventController eventController = new EventController(new EventService(eventDAO), authGuard);
+        EventController eventController =
+                new EventController(new EventService(eventDAO, notificationService), authGuard);
         AnnouncementDAO announcementDAO = new AnnouncementDAO(database);
         RequestController requestController = new RequestController(requestService, authGuard);
         DepartmentDAO departmentDAO = new DepartmentDAO(database);

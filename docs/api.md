@@ -306,7 +306,8 @@ Review is a required step: an administrator must review a request before it can 
 - Wrong role → `403 FORBIDDEN`.
 - **The request's `status` is the only status in the system.** Tasks don't have their own status.
 - A department manager may start or resolve requests only within their own department; a worker may do so only when assigned to the request.
-- Starting requires a worker task assignment. Successful start and resolve actions notify the citizen through the Observer pattern.
+- Starting requires a worker task assignment.
+- Every successful action notifies the request's citizen (`REQUEST_STATUS`) through the Observer pattern.
 - Every successful action returns `200` → updated `RequestDto`.
 
 ### `RequestDto`

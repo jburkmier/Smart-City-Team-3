@@ -7,11 +7,17 @@ import edu.asu.smartcity.server.dto.RequestAssignRequest;
 import edu.asu.smartcity.server.dto.RequestDto;
 import edu.asu.smartcity.server.dto.RequestRejectRequest;
 import edu.asu.smartcity.server.model.RequestStatus;
+import edu.asu.smartcity.server.model.NotificationType;
 import edu.asu.smartcity.server.model.RequestType;
+import edu.asu.smartcity.server.observer.Notice;
+import edu.asu.smartcity.server.observer.Subject;
 import edu.asu.smartcity.server.web.ApiException;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -117,8 +123,25 @@ public class RequestServiceTest {
         }
     }
 
+    /** Records each notice and its recipients instead of writing to the database. */
+    private static class FakeNotificationService extends NotificationService {
+        private final List<Notice> notices = new ArrayList<>();
+        private final List<Collection<Integer>> recipients = new ArrayList<>();
+
+        FakeNotificationService() {
+            super(null);
+        }
+
+        @Override
+        public void send(Subject subject, Collection<Integer> recipientIds) {
+            notices.add(subject.getState());
+            recipients.add(List.copyOf(recipientIds));
+        }
+    }
+
     private final FakeRequestDAO requests = new FakeRequestDAO();
-    private final RequestService service = new RequestService(requests);
+    private final FakeNotificationService notifications = new FakeNotificationService();
+    private final RequestService service = new RequestService(requests, null, notifications);
 
     @Test
     public void createTrimsFieldsAndStartsInSubmittedState() throws Exception {
@@ -196,6 +219,7 @@ public class RequestServiceTest {
 
         assertEquals(RequestStatus.UNDER_REVIEW, response.status());
         assertEquals(RequestStatus.UNDER_REVIEW, requests.current.status());
+        assertCitizenNotified(response, "Your request #2 (POTHOLE) is now UNDER_REVIEW.");
     }
 
     @Test
@@ -238,6 +262,7 @@ public class RequestServiceTest {
         assertEquals(RequestStatus.ASSIGNED, response.status());
         assertEquals(Integer.valueOf(1), response.departmentId());
         assertEquals("Public Works", response.departmentName());
+        assertCitizenNotified(response, "Your request #2 (POTHOLE) is now ASSIGNED.");
     }
 
     @Test
@@ -280,6 +305,7 @@ public class RequestServiceTest {
 
         assertEquals(409, error.status());
         assertEquals("INVALID_TRANSITION", error.code());
+        assertTrue("A failed transition must not notify the citizen.", notifications.notices.isEmpty());
     }
 
     @Test
@@ -291,6 +317,7 @@ public class RequestServiceTest {
         assertEquals(RequestStatus.REJECTED, response.status());
         assertEquals("Duplicate request.", response.rejectionReason());
         assertEquals("Duplicate request.", requests.current.rejectionReason());
+        assertCitizenNotified(response, "Your request #2 (POTHOLE) is now REJECTED.");
     }
 
     @Test
@@ -380,5 +407,14 @@ public class RequestServiceTest {
         }
         fail("Expected rejection error");
         return null;
+    }
+
+    private void assertCitizenNotified(RequestDto request, String message) {
+        assertEquals(1, notifications.notices.size());
+        Notice notice = notifications.notices.get(0);
+        assertEquals(NotificationType.REQUEST_STATUS, notice.type());
+        assertEquals(message, notice.message());
+        assertEquals(Integer.valueOf(request.id()), notice.relatedId());
+        assertEquals(List.of(request.citizenId()), notifications.recipients.get(0));
     }
 }

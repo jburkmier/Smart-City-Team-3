@@ -19,7 +19,6 @@ import edu.asu.smartcity.server.dto.TaskAssignRequest;
 import edu.asu.smartcity.server.dto.TaskAssignmentResult;
 import edu.asu.smartcity.server.dto.TaskDto;
 import edu.asu.smartcity.server.model.Role;
-import edu.asu.smartcity.server.service.NotificationService;
 import edu.asu.smartcity.server.model.RequestStatus;
 import edu.asu.smartcity.server.model.RequestType;
 import edu.asu.smartcity.server.web.ApiException;
@@ -36,10 +35,6 @@ public class RequestService {
     private final RequestDAO requests;
     private final TaskDAO tasks;
     private final NotificationService notifications;
-
-    public RequestService(RequestDAO requests) {
-        this(requests, null, null);
-    }
 
     public RequestService(RequestDAO requests, TaskDAO tasks, NotificationService notifications) {
         this.requests = requests;
@@ -79,8 +74,10 @@ public class RequestService {
             throw new ApiException(409, "INVALID_TRANSITION",
                     "Cannot review a request that is " + latest.status() + ".");
         }
-        return requests.findById(requestId).orElseThrow(
+        RequestDto updated = requests.findById(requestId).orElseThrow(
                 () -> new SQLException("Reviewed request could not be loaded."));
+        notifyCitizen(updated);
+        return updated;
     }
 
     public RequestDto assign(int requestId, RequestAssignRequest assignment) throws SQLException {
@@ -110,8 +107,10 @@ public class RequestService {
             throw new ApiException(409, "INVALID_TRANSITION",
                     "Cannot assign a request that is " + latest.status() + ".");
         }
-        return requests.findById(requestId).orElseThrow(
+        RequestDto updated = requests.findById(requestId).orElseThrow(
                 () -> new SQLException("Assigned request could not be loaded."));
+        notifyCitizen(updated);
+        return updated;
     }
 
     public RequestDto reject(int requestId, RequestRejectRequest rejection) throws SQLException {
@@ -140,8 +139,10 @@ public class RequestService {
             throw new ApiException(409, "INVALID_TRANSITION",
                     "Cannot reject a request that is " + latest.status() + ".");
         }
-        return requests.findById(requestId).orElseThrow(
+        RequestDto updated = requests.findById(requestId).orElseThrow(
                 () -> new SQLException("Rejected request could not be loaded."));
+        notifyCitizen(updated);
+        return updated;
     }
 
     public TaskAssignmentResult assignTask(int requestId, TaskAssignRequest assignment, SystemUser caller)

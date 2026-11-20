@@ -1,18 +1,24 @@
 package edu.asu.smartcity.server.service;
 
 import edu.asu.smartcity.server.dao.EventDAO;
+import edu.asu.smartcity.server.dao.NotificationDAO;
 import edu.asu.smartcity.server.dto.EventCreateRequest;
 import edu.asu.smartcity.server.dto.EventDto;
+import edu.asu.smartcity.server.model.NotificationType;
+import edu.asu.smartcity.server.observer.Notice;
 import edu.asu.smartcity.server.web.ApiException;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class EventServiceTest {
@@ -22,7 +28,7 @@ public class EventServiceTest {
         EventCreateRequest request = new EventCreateRequest(
                 " ", "x".repeat(2001), "INVALID", LocalDateTime.now().minusMinutes(1),
                 "INVALID", "x".repeat(256), new BigDecimal("-0.01"));
-        EventService service = new EventService(null);
+        EventService service = new EventService(null, null);
 
         try {
             service.create(request, 2);
@@ -44,7 +50,7 @@ public class EventServiceTest {
 
     @Test
     public void createRejectsNullRequest() throws Exception {
-        EventService service = new EventService(null);
+        EventService service = new EventService(null, null);
 
         try {
             service.create(null, 2);
@@ -57,7 +63,7 @@ public class EventServiceTest {
 
     @Test
     public void searchRejectsInvalidFilters() throws Exception {
-        EventService service = new EventService(null);
+        EventService service = new EventService(null, null);
 
         try {
             service.findUpcoming(1, null, "INVALID", "not-a-date", "2026-11-01",
@@ -76,7 +82,7 @@ public class EventServiceTest {
 
     @Test
     public void searchRejectsReversedDateRange() throws Exception {
-        EventService service = new EventService(null);
+        EventService service = new EventService(null, null);
 
         try {
             service.findUpcoming(1, null, null, "2026-11-20", "2026-11-10",
@@ -101,10 +107,83 @@ public class EventServiceTest {
                 return List.of(matching, wrongDistrict);
             }
         };
-        EventService service = new EventService(dao);
+        EventService service = new EventService(dao, null);
 
         assertEquals(List.of(matching), service.findUpcoming(7, " PARK ", "ENVIRONMENT",
                 "2099-06-01", "2099-06-10", "NORTH", "true", "popularity"));
+    }
+
+    private static class CancelEventDAO extends EventDAO {
+        private boolean active = true;
+        private final List<Integer> registeredUserIds = List.of(1, 9);
+
+        CancelEventDAO() {
+            super(null);
+        }
+
+        @Override
+        public boolean cancel(int eventId) {
+            boolean wasActive = active;
+            active = false;
+            return wasActive;
+        }
+
+        @Override
+        public Optional<String> findTitle(int eventId) {
+            return Optional.of("Riverside Park Cleanup");
+        }
+
+        @Override
+        public List<Integer> findRegisteredUserIds(int eventId) {
+            return registeredUserIds;
+        }
+    }
+
+    private static class RecordingNotificationDAO extends NotificationDAO {
+        private final List<Integer> userIds = new ArrayList<>();
+        private final List<Notice> notices = new ArrayList<>();
+
+        RecordingNotificationDAO() {
+            super(null);
+        }
+
+        @Override
+        public void insert(int userId, Notice notice) {
+            userIds.add(userId);
+            notices.add(notice);
+        }
+    }
+
+    @Test
+    public void cancelNotifiesEveryRegisteredCitizen() throws Exception {
+        RecordingNotificationDAO notificationDAO = new RecordingNotificationDAO();
+        EventService service = new EventService(new CancelEventDAO(), new NotificationService(notificationDAO));
+
+        service.cancel(3);
+
+        assertEquals(List.of(1, 9), notificationDAO.userIds);
+        for (Notice notice : notificationDAO.notices) {
+            assertEquals(NotificationType.EVENT_CANCELLED, notice.type());
+            assertEquals("Event cancelled: Riverside Park Cleanup", notice.message());
+            assertEquals(Integer.valueOf(3), notice.relatedId());
+        }
+    }
+
+    @Test
+    public void cancellingAnAlreadyCancelledEventIsNotFoundAndSendsNothing() throws Exception {
+        RecordingNotificationDAO notificationDAO = new RecordingNotificationDAO();
+        CancelEventDAO dao = new CancelEventDAO();
+        EventService service = new EventService(dao, new NotificationService(notificationDAO));
+        service.cancel(3);
+        notificationDAO.userIds.clear();
+
+        try {
+            service.cancel(3);
+            fail("Expected NOT_FOUND");
+        } catch (ApiException e) {
+            assertEquals(404, e.status());
+        }
+        assertTrue(notificationDAO.userIds.isEmpty());
     }
 
     private static EventDto event(String title, String description, String category, String district,

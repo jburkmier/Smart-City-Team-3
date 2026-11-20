@@ -2,6 +2,7 @@ package edu.asu.smartcity.server.service;
 
 import edu.asu.smartcity.server.catalog.EventCatalog;
 import edu.asu.smartcity.server.dao.EventDAO;
+import edu.asu.smartcity.server.domain.EventCancellation;
 import edu.asu.smartcity.server.dto.EventCreateRequest;
 import edu.asu.smartcity.server.dto.EventDto;
 import edu.asu.smartcity.server.filter.CompositeFilter;
@@ -32,9 +33,11 @@ public class EventService {
     private static final Set<String> DISTRICTS = Set.of("DOWNTOWN", "NORTH", "SOUTH", "EAST", "WEST");
 
     private final EventDAO events;
+    private final NotificationService notifications;
 
-    public EventService(EventDAO events) {
+    public EventService(EventDAO events, NotificationService notifications) {
         this.events = events;
+        this.notifications = notifications;
     }
 
     public List<EventDto> findUpcoming(int userId, String q, String category, String from, String to,
@@ -111,10 +114,16 @@ public class EventService {
                 .orElseThrow(EventService::notFound);
     }
 
+    /**
+     * Cancels the event, then notifies every registered citizen (EVENT_CANCELLED) through the
+     * Observer pattern. If notifying fails, the event stays cancelled and the error goes to the caller.
+     */
     public void cancel(int eventId) throws SQLException {
         if (!events.cancel(eventId)) {
             throw notFound();
         }
+        String title = events.findTitle(eventId).orElse("Event #" + eventId);
+        notifications.send(new EventCancellation(eventId, title), events.findRegisteredUserIds(eventId));
     }
 
     public EventDto register(int eventId, int userId) throws SQLException {

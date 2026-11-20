@@ -236,6 +236,17 @@ body {
     font-weight: bold;
 }
 
+.registration-controls {
+    align-items: center;
+}
+
+.registration-controls label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+}
+
 #request-filters {
     margin-bottom: 12px;
 }

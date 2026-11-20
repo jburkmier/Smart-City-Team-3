@@ -113,12 +113,16 @@
                     </select>
                 </label>
                 <button class="button" type="submit">Apply filters</button>
+            </form>
+
+            <!-- Outside the filter form: My Registrations hides that form but still needs these. -->
+            <div class="links registration-controls">
                 <button class="button" id="show-registrations" type="button" hidden>My registrations</button>
                 <label id="upcoming-only-label" hidden>
                     <input id="upcoming-only" type="checkbox">
                     Upcoming only
                 </label>
-            </form>
+            </div>
 
             <div id="event-list" class="event-list" aria-live="polite"></div>
 

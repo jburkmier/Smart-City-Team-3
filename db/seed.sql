@@ -149,6 +149,20 @@ INSERT INTO notifications (notification_id, user_id, type, message, related_id, 
 -- Part 2 adds: events, request workflows, and a second worker.
 -- Part 3 adds: task assignments, transit routes, and sample flagged content.
 
+-- Read-only transit schedule (GET /transit). Each row is one trip: it leaves the stop at
+-- departure_time and reaches the end of the line at arrival_time.
+INSERT INTO transit_routes (id, route, stop, departure_time, arrival_time) VALUES
+  (1,  '21A', 'City Hall Plaza',          '07:15', '07:42'),
+  (2,  '21A', 'City Hall Plaza',          '08:15', '08:42'),
+  (3,  '21A', 'Central Library',          '12:05', '12:30'),
+  (4,  '21A', 'City Hall Plaza',          '17:15', '17:45'),
+  (5,  '45',  'Riverside Park',           '06:50', '07:20'),
+  (6,  '45',  'Downtown Transit Center',  '07:30', '08:00'),
+  (7,  '45',  'Riverside Park',           '16:50', '17:20'),
+  (8,  'LR1', 'Mill Ave Station',         '06:00', '06:25'),
+  (9,  'LR1', 'Mill Ave Station',         '06:20', '06:45'),
+  (10, 'LR1', 'Downtown Transit Center',  '18:10', '18:35');
+
 -- Six sample flags cover each moderation status and all supported content types.
 -- Removed flags also hide their content, matching the administrator moderation behavior.
 UPDATE announcements SET is_deleted = TRUE WHERE announcement_id = 1;

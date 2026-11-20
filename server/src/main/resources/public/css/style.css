@@ -509,6 +509,37 @@ body {
     text-align: right;
 }
 
+.transit-view {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--accent-light-color);
+}
+
+.transit-view .section-heading {
+    margin-bottom: 0;
+}
+
+.transit-table-wrapper {
+    overflow-x: auto;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.transit-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transit-table th,
+.transit-table td {
+    padding: 7px 4px;
+    border-bottom: 1px solid var(--secondary-color);
+    text-align: left;
+}
+
 .flags-view .section-heading {
     margin-bottom: 0;
 }

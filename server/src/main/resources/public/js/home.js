@@ -1,5 +1,4 @@
 // Home page: greets the logged-in user and shows the features for their role.
-// The features themselves come in Parts 2 and 3; for now each button says "coming soon".
 
 const ROLE_NAMES = {
     CITIZEN: 'Citizen',
@@ -46,6 +45,11 @@ function showUser(user) {
             document.getElementById('announcements-view').hidden = true;
             document.getElementById('flags-view').hidden = true;
             document.getElementById('reports-view').hidden = true;
+            document.getElementById('transit-view').hidden = true;
+            if (feature === 'Transit') {
+                openTransit();
+                return;
+            }
             if (feature === 'Notifications') {
                 openNotifications();
                 return;

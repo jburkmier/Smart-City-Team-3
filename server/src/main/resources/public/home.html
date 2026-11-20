@@ -40,6 +40,27 @@
             <button class="button" id="back-to-main-report" type="button" hidden>Back to City Engagement Report</button>
         </section>
 
+        <section id="transit-view" class="transit-view" aria-labelledby="transit-title" hidden>
+            <div class="section-heading">
+                <h2 id="transit-title">Public Transit Schedule</h2>
+                <button class="button" id="close-transit" type="button">Back to home</button>
+            </div>
+            <p id="transit-message" class="message" role="status" hidden></p>
+            <label>Route
+                <select class="field" id="transit-route">
+                    <option value="">All routes</option>
+                </select>
+            </label>
+            <div class="transit-table-wrapper">
+                <table class="transit-table">
+                    <thead>
+                        <tr><th>Route</th><th>Departs from</th><th>Departs</th><th>Arrives (end of line)</th></tr>
+                    </thead>
+                    <tbody id="transit-rows" aria-live="polite"></tbody>
+                </table>
+            </div>
+        </section>
+
         <section id="events-view" class="events-view" aria-labelledby="events-title" hidden>
             <div class="section-heading">
                 <h2 id="events-title">Community Events</h2>
@@ -288,5 +309,6 @@
     <script src="js/announcements.js"></script>
     <script src="js/flags.js"></script>
     <script src="js/reports.js"></script>
+    <script src="js/transit.js"></script>
 </body>
 </html>

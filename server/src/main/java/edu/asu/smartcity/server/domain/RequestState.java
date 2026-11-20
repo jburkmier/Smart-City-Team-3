@@ -22,30 +22,28 @@ public abstract class RequestState {
                 "Cannot reject a request that is " + getStatusName() + ".");
     }
 
+    public RequestState start() {
+        throw new RequestTransitionException(
+                "Cannot start a request that is " + getStatusName() + ".");
+    }
+
+    public RequestState resolve() {
+        throw new RequestTransitionException(
+                "Cannot resolve a request that is " + getStatusName() + ".");
+    }
+
     public final String getStatusName() {
         return getStatus().name();
     }
 
     public static RequestState fromStatus(RequestStatus status) {
-        if (status == RequestStatus.SUBMITTED) {
-            return new SubmittedState();
-        }
-        if (status == RequestStatus.UNDER_REVIEW) {
-            return new UnderReviewState();
-        }
-        return new StoredState(status);
-    }
-
-    private static final class StoredState extends RequestState {
-        private final RequestStatus status;
-
-        private StoredState(RequestStatus status) {
-            this.status = status;
-        }
-
-        @Override
-        public RequestStatus getStatus() {
-            return status;
-        }
+        return switch (status) {
+            case SUBMITTED -> new SubmittedState();
+            case UNDER_REVIEW -> new UnderReviewState();
+            case ASSIGNED -> new AssignedState();
+            case IN_PROGRESS -> new InProgressState();
+            case RESOLVED -> new ResolvedState();
+            case REJECTED -> new RejectedState();
+        };
     }
 }

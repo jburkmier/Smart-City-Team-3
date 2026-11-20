@@ -230,6 +230,14 @@ body {
     font-weight: bold;
 }
 
+#request-filters {
+    margin-bottom: 12px;
+}
+
+#request-filters button {
+    align-self: end;
+}
+
 .event-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -315,6 +323,9 @@ body {
 }
 
 .request-card {
+    display: grid;
+    align-content: start;
+    gap: 8px;
     padding: 16px;
     border-radius: 8px;
     background-color: #fff;
@@ -325,7 +336,83 @@ body {
 }
 
 .request-card p {
-    margin: 6px 0;
+    margin: 0;
+}
+
+.request-status {
+    width: fit-content;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-weight: bold;
+}
+
+.request-status.status-submitted {
+    background-color: #e8edf2;
+}
+
+.request-status.status-under-review {
+    background-color: #dce8f8;
+}
+
+.request-status.status-assigned {
+    background-color: #d9eee8;
+}
+
+.request-status.status-in-progress {
+    background-color: #f7e8c9;
+}
+
+.request-status.status-resolved {
+    background-color: #a8d5a2;
+}
+
+.request-status.status-rejected {
+    background-color: #f2d9d8;
+}
+
+.request-card textarea {
+    resize: vertical;
+}
+
+.task-assignee {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 10px 12px;
+    border-left: 4px solid var(--primary-color);
+    border-radius: 6px;
+    background-color: var(--accent-light-color);
+}
+
+.task-assignee-label {
+    font-weight: bold;
+}
+
+.task-assignment-panel {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--secondary-color);
+    border-radius: 8px;
+    background-color: #f7fbfc;
+}
+
+.task-assignment-label {
+    display: grid;
+    gap: 6px;
+    font-weight: bold;
+}
+
+.task-assignment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.task-assignment-actions .button-secondary {
+    background-color: var(--accent-light-color);
 }
 
 .notifications-view {

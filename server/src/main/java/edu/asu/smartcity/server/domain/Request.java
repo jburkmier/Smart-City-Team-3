@@ -55,6 +55,14 @@ public class Request {
         state = state.reject();
     }
 
+    public void start() {
+        state = state.start();
+    }
+
+    public void resolve() {
+        state = state.resolve();
+    }
+
     public String getStatusName() {
         return state.getStatusName();
     }

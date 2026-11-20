@@ -8,6 +8,9 @@ const reportGeneratedAt = document.getElementById('report-generated-at');
 const departmentReportForm = document.getElementById('department-report-form');
 const departmentReportId = document.getElementById('department-report-id');
 
+// Incremented on every report load or close; a response renders only if no newer load has started.
+let currentReportLoad = 0;
+
 function openReports(feature, user) {
     for (const id of ['events-view', 'requests-view', 'announcements-view', 'notifications-view', 'flags-view']) {
         const view = document.getElementById(id);
@@ -36,11 +39,16 @@ function openReports(feature, user) {
 }
 
 async function loadEngagementReport() {
+    const loadId = ++currentReportLoad;
     try {
         const report = await Api.get('/reports/engagement');
-        renderEngagementReport(report);
+        if (loadId === currentReportLoad) {
+            renderEngagementReport(report);
+        }
     } catch (reportError) {
-        showReportsError(reportError);
+        if (loadId === currentReportLoad) {
+            showReportsError(reportError);
+        }
     }
 }
 
@@ -64,15 +72,20 @@ async function loadDepartmentOptions() {
 }
 
 async function loadDepartmentReport(departmentId) {
+    const loadId = ++currentReportLoad;
     if (!departmentId) {
         showReportsError(new Error('Your account is not associated with a department.'));
         return;
     }
     try {
         const report = await Api.get('/reports/departments/' + encodeURIComponent(departmentId));
-        renderDepartmentReport(report);
+        if (loadId === currentReportLoad) {
+            renderDepartmentReport(report);
+        }
     } catch (reportError) {
-        showReportsError(reportError);
+        if (loadId === currentReportLoad) {
+            showReportsError(reportError);
+        }
     }
 }
 
@@ -196,5 +209,6 @@ document.getElementById('back-to-main-report').addEventListener('click', () => {
 });
 
 document.getElementById('close-reports').addEventListener('click', () => {
+    currentReportLoad++;
     reportsView.hidden = true;
 });

@@ -553,7 +553,9 @@ Roles: any logged-in user. Query `unreadOnly=true` (optional). Newest first.
 ## 8. Part 3: Reports, Transit
 
 ### `GET /reports/engagement`
-Roles: `CITY_ADMINISTRATOR` (Monitor Citizen Engagement Statistics).
+Roles: `CITY_ADMINISTRATOR` (Monitor Citizen Engagement Statistics). `activeUsersLast7Days` counts users
+whose last successful login was within the previous seven days; `upcomingEvents` excludes cancelled and hidden events.
+Request counts include all service requests, and `openFlags` counts flags whose status is `OPEN`.
 ```json
 {
   "generatedAt": "2026-11-18T14:00:00",
@@ -569,7 +571,10 @@ Roles: `CITY_ADMINISTRATOR` (Monitor Citizen Engagement Statistics).
 ```
 
 ### `GET /reports/departments/{id}`
-Roles: `CITY_ADMINISTRATOR` (any department), `DEPARTMENT_MANAGER` (own department only, otherwise `404`). Computed on request, not stored (Generate Report).
+Roles: `CITY_ADMINISTRATOR` (any department), `DEPARTMENT_MANAGER` (own department only, otherwise `404`).
+Computed on request, not stored (Generate Report). `averageResolutionHours` is `null` when there are no resolved
+requests; otherwise, it is measured from request submission
+to resolution; open tasks are requests in `ASSIGNED` or `IN_PROGRESS` status, grouped by the currently assigned worker.
 ```json
 {
   "departmentId": 1,

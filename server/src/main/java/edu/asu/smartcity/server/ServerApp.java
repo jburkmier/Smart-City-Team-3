@@ -8,6 +8,7 @@ import edu.asu.smartcity.server.dao.DepartmentDAO;
 import edu.asu.smartcity.server.dao.EventDAO;
 import edu.asu.smartcity.server.dao.FlagDAO;
 import edu.asu.smartcity.server.dao.NotificationDAO;
+import edu.asu.smartcity.server.dao.ReportDAO;
 import edu.asu.smartcity.server.dao.RequestDAO;
 import edu.asu.smartcity.server.dao.TaskDAO;
 import edu.asu.smartcity.server.dao.UserDAO;
@@ -19,6 +20,7 @@ import edu.asu.smartcity.server.service.DepartmentService;
 import edu.asu.smartcity.server.service.EventService;
 import edu.asu.smartcity.server.service.FlagService;
 import edu.asu.smartcity.server.service.NotificationService;
+import edu.asu.smartcity.server.service.ReportService;
 import edu.asu.smartcity.server.service.RequestService;
 import edu.asu.smartcity.server.session.SessionManager;
 import edu.asu.smartcity.server.web.AnnouncementController;
@@ -30,6 +32,7 @@ import edu.asu.smartcity.server.web.EventController;
 import edu.asu.smartcity.server.web.FlagController;
 import edu.asu.smartcity.server.web.HealthController;
 import edu.asu.smartcity.server.web.NotificationController;
+import edu.asu.smartcity.server.web.ReportController;
 import edu.asu.smartcity.server.web.RequestController;
 import io.javalin.Javalin;
 import io.javalin.http.NotFoundResponse;
@@ -81,6 +84,8 @@ public class ServerApp {
                 new DepartmentController(new DepartmentService(departmentDAO), authGuard);
         NotificationController notificationController =
                 new NotificationController(notificationService, authGuard);
+        ReportController reportController =
+                new ReportController(new ReportService(new ReportDAO(database)), authGuard);
         AnnouncementController announcementController = new AnnouncementController(
                 new AnnouncementService(announcementDAO, userDAO, notificationService), authGuard);
         FlagController flagController = new FlagController(
@@ -106,6 +111,8 @@ public class ServerApp {
         app.get("/api/me/registrations", eventController::registrations);
         app.get("/api/departments", departmentController::list);
         app.get("/api/departments/{id}/workers", departmentController::workers);
+        app.get("/api/reports/engagement", reportController::engagement);
+        app.get("/api/reports/departments/{id}", reportController::department);
         app.post("/api/auth/register", authController::register);
         app.post("/api/auth/login", authController::login);
         app.post("/api/auth/logout", authController::logout);

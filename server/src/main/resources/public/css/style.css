@@ -429,6 +429,86 @@ body {
     background-color: var(--accent-light-color);
 }
 
+.reports-view {
+    display: grid;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: var(--accent-light-color);
+}
+
+.reports-view .section-heading {
+    margin-bottom: 0;
+}
+
+.department-report-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 10px;
+}
+
+.department-report-form label {
+    font-weight: bold;
+}
+
+.department-report-form .field {
+    width: auto;
+    min-width: 220px;
+}
+
+.report-generated-at {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.report-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.report-metric,
+.report-breakdown {
+    padding: 16px;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.report-metric h3,
+.report-breakdown h3 {
+    margin: 0 0 8px;
+}
+
+.report-metric p {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.report-breakdowns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+}
+
+.report-breakdown table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-breakdown th,
+.report-breakdown td {
+    padding: 7px 4px;
+    border-bottom: 1px solid var(--secondary-color);
+    text-align: left;
+}
+
+.report-breakdown th:last-child,
+.report-breakdown td:last-child {
+    text-align: right;
+}
+
 .flags-view .section-heading {
     margin-bottom: 0;
 }

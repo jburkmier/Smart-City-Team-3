@@ -45,6 +45,7 @@ function showUser(user) {
             document.getElementById('notifications-view').hidden = true;
             document.getElementById('announcements-view').hidden = true;
             document.getElementById('flags-view').hidden = true;
+            document.getElementById('reports-view').hidden = true;
             if (feature === 'Notifications') {
                 openNotifications();
                 return;
@@ -55,6 +56,10 @@ function showUser(user) {
             }
             if (feature === 'Flagged Content') {
                 openFlaggedContent();
+                return;
+            }
+            if (feature === 'Engagement Stats' || feature === 'Reports') {
+                openReports(feature, user);
                 return;
             }
             if (feature === 'Events' || feature === 'Manage Events') {

@@ -59,6 +59,16 @@ public class UserDAO {
         }
     }
 
+    /** Records a successful login for the engagement report's seven-day activity metric. */
+    public void recordLogin(int userId) throws SQLException {
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = ?")) {
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
+        }
+    }
+
     /**
      * Inserts a new user and returns the generated user_id.
      * address and phone may be null. Department and skill stay empty (staff come from the seed data).

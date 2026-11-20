@@ -589,7 +589,9 @@ to resolution; open tasks are requests in `ASSIGNED` or `IN_PROGRESS` status, gr
 ```
 
 ### `GET /transit`
-Roles: any logged-in user. Read-only seeded data (Check Public Transit Schedule). Query `route` (optional). *(Cut first if behind.)*
+Roles: any logged-in user. Read-only seeded data (Check Public Transit Schedule), sorted by route, then departure time.
+Query `route` (optional, exact match, at most 20 characters; longer → `400 VALIDATION_FAILED`). An unknown route returns `[]`.
+Each item is one trip: it leaves `stop` at `departureTime` and reaches the end of the line at `arrivalTime` (both `HH:mm`).
 ```json
 [ { "id": 1, "route": "21A", "stop": "City Hall Plaza", "departureTime": "07:15", "arrivalTime": "07:42" } ]
 ```

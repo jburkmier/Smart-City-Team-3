@@ -11,6 +11,7 @@ import edu.asu.smartcity.server.dao.NotificationDAO;
 import edu.asu.smartcity.server.dao.ReportDAO;
 import edu.asu.smartcity.server.dao.RequestDAO;
 import edu.asu.smartcity.server.dao.TaskDAO;
+import edu.asu.smartcity.server.dao.TransitDAO;
 import edu.asu.smartcity.server.dao.UserDAO;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.ErrorResponse;
@@ -22,6 +23,7 @@ import edu.asu.smartcity.server.service.FlagService;
 import edu.asu.smartcity.server.service.NotificationService;
 import edu.asu.smartcity.server.service.ReportService;
 import edu.asu.smartcity.server.service.RequestService;
+import edu.asu.smartcity.server.service.TransitService;
 import edu.asu.smartcity.server.session.SessionManager;
 import edu.asu.smartcity.server.web.AnnouncementController;
 import edu.asu.smartcity.server.web.ApiException;
@@ -34,6 +36,7 @@ import edu.asu.smartcity.server.web.HealthController;
 import edu.asu.smartcity.server.web.NotificationController;
 import edu.asu.smartcity.server.web.ReportController;
 import edu.asu.smartcity.server.web.RequestController;
+import edu.asu.smartcity.server.web.TransitController;
 import io.javalin.Javalin;
 import io.javalin.http.NotFoundResponse;
 import io.javalin.http.staticfiles.Location;
@@ -91,6 +94,8 @@ public class ServerApp {
                 new AnnouncementService(announcementDAO, userDAO, notificationService), authGuard);
         FlagController flagController = new FlagController(
                 new FlagService(new FlagDAO(database), userDAO, notificationService), authGuard);
+        TransitController transitController =
+                new TransitController(new TransitService(new TransitDAO(database)), authGuard);
 
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
@@ -136,6 +141,7 @@ public class ServerApp {
         app.post("/api/announcements", announcementController::create);
         app.put("/api/announcements/{id}", announcementController::update);
         app.delete("/api/announcements/{id}", announcementController::delete);
+        app.get("/api/transit", transitController::list);
 
         // Javalin throws NotFoundResponse when no route or page matches. Unknown /api paths get
         // the api.md error format; missing pages keep Javalin's plain-text 404.

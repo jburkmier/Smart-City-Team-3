@@ -22,6 +22,16 @@ public abstract class RequestState {
                 "Cannot reject a request that is " + getStatusName() + ".");
     }
 
+    public RequestState start() {
+        throw new RequestTransitionException(
+                "Cannot start a request that is " + getStatusName() + ".");
+    }
+
+    public RequestState resolve() {
+        throw new RequestTransitionException(
+                "Cannot resolve a request that is " + getStatusName() + ".");
+    }
+
     public final String getStatusName() {
         return getStatus().name();
     }

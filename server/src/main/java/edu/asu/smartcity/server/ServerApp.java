@@ -9,6 +9,7 @@ import edu.asu.smartcity.server.dao.EventDAO;
 import edu.asu.smartcity.server.dao.FlagDAO;
 import edu.asu.smartcity.server.dao.NotificationDAO;
 import edu.asu.smartcity.server.dao.RequestDAO;
+import edu.asu.smartcity.server.dao.TaskDAO;
 import edu.asu.smartcity.server.dao.UserDAO;
 import edu.asu.smartcity.server.db.DatabaseConnection;
 import edu.asu.smartcity.server.dto.ErrorResponse;
@@ -64,7 +65,9 @@ public class ServerApp {
         SessionManager sessions = SessionManager.instance();
         UserDAO userDAO = new UserDAO(database);
         AuthService authService = new AuthService(userDAO, sessions);
-        RequestService requestService = new RequestService(new RequestDAO(database));
+        NotificationService notificationService = new NotificationService(new NotificationDAO(database));
+        RequestService requestService =
+                new RequestService(new RequestDAO(database), new TaskDAO(database), notificationService);
         AuthGuard authGuard = new AuthGuard(sessions);
 
         HealthController healthController = new HealthController(database);
@@ -76,7 +79,6 @@ public class ServerApp {
         DepartmentDAO departmentDAO = new DepartmentDAO(database);
         DepartmentController departmentController =
                 new DepartmentController(new DepartmentService(departmentDAO), authGuard);
-        NotificationService notificationService = new NotificationService(new NotificationDAO(database));
         NotificationController notificationController =
                 new NotificationController(notificationService, authGuard);
         AnnouncementController announcementController = new AnnouncementController(
@@ -115,6 +117,10 @@ public class ServerApp {
         app.post("/api/requests/{id}/review", requestController::review);
         app.post("/api/requests/{id}/assign", requestController::assign);
         app.post("/api/requests/{id}/reject", requestController::reject);
+        app.put("/api/requests/{id}/task", requestController::assignTask);
+        app.get("/api/me/tasks", requestController::myTasks);
+        app.post("/api/requests/{id}/start", requestController::start);
+        app.post("/api/requests/{id}/resolve", requestController::resolve);
         app.get("/api/me/notifications", notificationController::list);
         app.post("/api/me/notifications/read-all", notificationController::markAllRead);
         app.post("/api/me/notifications/{id}/read", notificationController::markRead);

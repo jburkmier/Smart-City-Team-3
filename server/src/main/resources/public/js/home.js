@@ -24,6 +24,10 @@ const requestsTitle = document.getElementById('requests-title');
 const requestList = document.getElementById('request-list');
 const requestForm = document.getElementById('request-form');
 const requestMessage = document.getElementById('request-message');
+const requestFilters = document.getElementById('request-filters');
+
+let loadedRequestEntries = [];
+let renderRequestEntry = null;
 
 function showUser(user) {
     document.getElementById('welcome').textContent = 'Welcome, ' + user.name;
@@ -65,6 +69,14 @@ function showUser(user) {
                 openRequestForm(user);
                 return;
             }
+            if (feature === 'Assign Tasks') {
+                openRequests(user, true);
+                return;
+            }
+            if (feature === 'My Tasks') {
+                openMyTasks(user);
+                return;
+            }
             if (isRequestListFeature(user.role, feature)) {
                 openRequests(user);
                 return;
@@ -87,19 +99,23 @@ function isRequestListFeature(role, feature) {
         || (role === 'DEPARTMENT_MANAGER' && feature === 'Department Requests');
 }
 
-async function openRequests(user) {
+async function openRequests(user, assignmentMode) {
     const citizenView = user.role === 'CITIZEN';
     document.getElementById('events-view').hidden = true;
     requestsTitle.textContent = citizenView
         ? 'My Requests'
-        : user.role === 'CITY_ADMINISTRATOR' ? 'Review Requests' : 'Department Requests';
+        : user.role === 'CITY_ADMINISTRATOR' ? 'Review Requests'
+            : assignmentMode ? 'Assign Tasks' : 'Department Requests';
     requestsView.hidden = false;
     requestForm.hidden = true;
+    requestFilters.hidden = false;
     requestList.hidden = false;
     requestMessage.hidden = true;
     notice.hidden = true;
     error.hidden = true;
     requestList.replaceChildren();
+    loadedRequestEntries = [];
+    renderRequestEntry = null;
 
     try {
         const requests = await Api.get(citizenView ? '/me/requests' : '/requests');
@@ -113,6 +129,8 @@ async function openRequests(user) {
         }
         let departments = [];
         let departmentLoadError = null;
+        let workers = [];
+        let workerLoadError = null;
         if (user.role === 'CITY_ADMINISTRATOR' && requests.some(request => request.status === 'UNDER_REVIEW')) {
             try {
                 departments = await Api.get('/departments');
@@ -120,12 +138,70 @@ async function openRequests(user) {
                 departmentLoadError = departmentError.message;
             }
         }
-        for (const request of requests) {
-            requestList.appendChild(createRequestCard(
-                request, user.role === 'CITY_ADMINISTRATOR', departments, departmentLoadError));
+        if (user.role === 'DEPARTMENT_MANAGER' && assignmentMode
+            && requests.some(request => request.status === 'ASSIGNED' || request.status === 'IN_PROGRESS')) {
+            try {
+                workers = await Api.get('/departments/' + user.departmentId + '/workers');
+            } catch (workerError) {
+                workerLoadError = workerError.message;
+            }
         }
+        const displayedRequests = assignmentMode
+            ? requests.filter(request => request.status === 'ASSIGNED' || request.status === 'IN_PROGRESS')
+            : requests;
+        if (assignmentMode && displayedRequests.length === 0) {
+            const empty = document.createElement('p');
+            empty.textContent = 'There are no assigned or in-progress requests to manage.';
+            requestList.appendChild(empty);
+            return;
+        }
+        loadedRequestEntries = displayedRequests;
+        renderRequestEntry = request => createRequestCard(
+            request, user.role === 'CITY_ADMINISTRATOR', departments, departmentLoadError,
+            user.role === 'DEPARTMENT_MANAGER' && assignmentMode, workers, workerLoadError);
+        renderFilteredRequests();
     } catch (requestError) {
         error.textContent = requestError.message;
+        error.hidden = false;
+    }
+}
+
+async function openMyTasks(user) {
+    document.getElementById('events-view').hidden = true;
+    requestsTitle.textContent = 'My Tasks';
+    requestsView.hidden = false;
+    requestForm.hidden = true;
+    requestFilters.hidden = false;
+    requestList.hidden = false;
+    requestMessage.hidden = true;
+    notice.hidden = true;
+    error.hidden = true;
+    requestList.replaceChildren();
+    loadedRequestEntries = [];
+    renderRequestEntry = null;
+
+    try {
+        const tasks = await Api.get('/me/tasks');
+        if (!tasks.length) {
+            const empty = document.createElement('p');
+            empty.textContent = 'You have no assigned tasks.';
+            requestList.appendChild(empty);
+            return;
+        }
+        for (const task of tasks) {
+            loadedRequestEntries.push(task);
+        }
+        renderRequestEntry = task => {
+            const card = createRequestCard(task.request, false, [], null, false, [], null, task);
+            appendRequestText(card, 'Assigned: ' + new Date(task.assignedAt).toLocaleString());
+            if (task.notes) {
+                appendRequestText(card, 'Task notes: ' + task.notes);
+            }
+            return card;
+        };
+        renderFilteredRequests();
+    } catch (taskError) {
+        error.textContent = taskError.message;
         error.hidden = false;
     }
 }
@@ -139,6 +215,7 @@ function openRequestForm(user) {
     requestsView.hidden = false;
     requestList.hidden = true;
     requestForm.hidden = false;
+    requestFilters.hidden = true;
     requestForm.reset();
     requestMessage.hidden = true;
     notice.hidden = true;
@@ -176,7 +253,75 @@ document.getElementById('cancel-request').addEventListener('click', () => {
     openRequests(Session.user());
 });
 
-function createRequestCard(request, canReview, departments, departmentLoadError) {
+requestFilters.addEventListener('submit', event => {
+    event.preventDefault();
+    const filters = new FormData(requestFilters);
+    if (filters.get('from') && filters.get('to') && filters.get('from') > filters.get('to')) {
+        error.textContent = '"Submitted from" must be on or before "Submitted to".';
+        error.hidden = false;
+        return;
+    }
+    error.hidden = true;
+    renderFilteredRequests();
+});
+
+document.getElementById('reset-request-filters').addEventListener('click', () => {
+    requestFilters.reset();
+    error.hidden = true;
+    renderFilteredRequests();
+});
+
+function filterRequests(entries) {
+    const filters = new FormData(requestFilters);
+    const status = filters.get('status');
+    const type = filters.get('type');
+    const from = filters.get('from');
+    const to = filters.get('to');
+    const sort = filters.get('sort');
+
+    return entries
+        .filter(entry => {
+            const request = entry.request || entry;
+            return !status || request.status === status;
+        })
+        .filter(entry => {
+            const request = entry.request || entry;
+            return !type || request.type === type;
+        })
+        .filter(entry => {
+            const request = entry.request || entry;
+            return !from || request.submittedAt.slice(0, 10) >= from;
+        })
+        .filter(entry => {
+            const request = entry.request || entry;
+            return !to || request.submittedAt.slice(0, 10) <= to;
+        })
+        .sort((left, right) => {
+            const leftRequest = left.request || left;
+            const rightRequest = right.request || right;
+            const difference = new Date(leftRequest.submittedAt) - new Date(rightRequest.submittedAt);
+            return sort === 'oldest' ? difference : -difference;
+        });
+}
+
+function renderFilteredRequests() {
+    requestList.replaceChildren();
+    const filteredEntries = filterRequests(loadedRequestEntries);
+    if (!filteredEntries.length) {
+        const empty = document.createElement('p');
+        empty.textContent = loadedRequestEntries.length
+            ? 'No requests match these filters.'
+            : 'No requests are available.';
+        requestList.appendChild(empty);
+        return;
+    }
+    for (const entry of filteredEntries) {
+        requestList.appendChild(renderRequestEntry(entry));
+    }
+}
+
+function createRequestCard(request, canReview, departments, departmentLoadError,
+    canManageTasks, workers, workerLoadError, task) {
     const card = document.createElement('article');
     card.className = 'request-card';
 
@@ -185,7 +330,10 @@ function createRequestCard(request, canReview, departments, departmentLoadError)
     card.appendChild(title);
     appendRequestText(card, request.description);
     appendRequestText(card, request.location);
-    appendRequestText(card, 'Status: ' + request.status.replaceAll('_', ' '));
+    const status = document.createElement('p');
+    status.className = 'request-status status-' + request.status.toLowerCase().replaceAll('_', '-');
+    status.textContent = 'Status: ' + request.status.replaceAll('_', ' ');
+    card.appendChild(status);
     appendRequestText(card, 'Submitted: ' + new Date(request.submittedAt).toLocaleString());
     if (request.citizenName) {
         appendRequestText(card, 'Submitted by: ' + request.citizenName);
@@ -193,7 +341,9 @@ function createRequestCard(request, canReview, departments, departmentLoadError)
     if (request.departmentName) {
         appendRequestText(card, 'Department: ' + request.departmentName);
     }
-    if (request.assignedWorkerName) {
+    if (canManageTasks && (request.status === 'ASSIGNED' || request.status === 'IN_PROGRESS')) {
+        appendTaskAssignee(card, request.assignedWorkerName);
+    } else if (request.assignedWorkerName) {
         appendRequestText(card, 'Assigned to: ' + request.assignedWorkerName);
     }
     if (request.rejectionReason) {
@@ -322,13 +472,175 @@ function createRequestCard(request, canReview, departments, departmentLoadError)
         rejectionForm.appendChild(rejectButton);
         card.appendChild(rejectionForm);
     }
+
+    const canStart = request.status === 'ASSIGNED'
+        && (!!task || (canManageTasks && request.assignedWorkerId !== null));
+    const canResolve = request.status === 'IN_PROGRESS' && (canManageTasks || !!task);
+    const canAssignTask = canManageTasks
+        && (request.status === 'ASSIGNED' || request.status === 'IN_PROGRESS');
+    if (canAssignTask) {
+        if (workerLoadError) {
+            appendRequestText(card, 'Unable to load workers: ' + workerLoadError);
+        } else if (workers.length === 0) {
+            appendRequestText(card, 'No workers are available in this department.');
+        } else {
+            const assignmentPanel = document.createElement('div');
+            assignmentPanel.className = 'task-assignment-panel';
+            assignmentPanel.hidden = true;
+            assignmentPanel.id = 'task-assignment-' + request.id;
+
+            const workerLabel = document.createElement('label');
+            workerLabel.className = 'task-assignment-label';
+            workerLabel.textContent = request.assignedWorkerId ? 'Choose a worker to reassign to' : 'Choose a worker';
+            const workerSelect = document.createElement('select');
+            workerSelect.className = 'field';
+            workerSelect.required = true;
+            workerSelect.setAttribute('aria-label', 'Choose a worker');
+            const workerPlaceholder = document.createElement('option');
+            workerPlaceholder.value = '';
+            workerPlaceholder.textContent = 'Select a worker';
+            workerPlaceholder.disabled = true;
+            workerPlaceholder.selected = true;
+            workerSelect.appendChild(workerPlaceholder);
+            for (const worker of workers) {
+                const option = document.createElement('option');
+                option.value = worker.id;
+                option.textContent = worker.name + (worker.skill ? ' · ' + worker.skill : '');
+                workerSelect.appendChild(option);
+            }
+            workerLabel.appendChild(workerSelect);
+            assignmentPanel.appendChild(workerLabel);
+
+            const taskNotes = document.createElement('textarea');
+            taskNotes.className = 'field';
+            taskNotes.maxLength = 1000;
+            taskNotes.rows = 2;
+            taskNotes.setAttribute('aria-label', 'Optional task notes');
+            taskNotes.placeholder = 'Optional task notes';
+            assignmentPanel.appendChild(taskNotes);
+
+            const assignmentActions = document.createElement('div');
+            assignmentActions.className = 'task-assignment-actions';
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'button';
+            confirmButton.type = 'button';
+            confirmButton.textContent = request.assignedWorkerId ? 'Reassign to selected worker' : 'Assign selected worker';
+            confirmButton.addEventListener('click', async () => {
+                if (!workerSelect.value) {
+                    workerSelect.reportValidity();
+                    return;
+                }
+                confirmButton.disabled = true;
+                cancelButton.disabled = true;
+                error.hidden = true;
+                try {
+                    const result = await Api.put('/requests/' + request.id + '/task', {
+                        workerId: Number(workerSelect.value),
+                        notes: taskNotes.value
+                    });
+                    await refreshCurrentRequests(Session.user());
+                    requestMessage.className = 'message message-success';
+                    requestMessage.textContent = result.workerName + ' assigned to request #' + request.id + '.';
+                    requestMessage.hidden = false;
+                } catch (taskError) {
+                    error.textContent = taskError.message;
+                    error.hidden = false;
+                    confirmButton.disabled = false;
+                    cancelButton.disabled = false;
+                }
+            });
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'button button-secondary';
+            cancelButton.type = 'button';
+            cancelButton.textContent = 'Cancel';
+            cancelButton.addEventListener('click', () => {
+                assignmentPanel.hidden = true;
+                assignmentButton.setAttribute('aria-expanded', 'false');
+            });
+            assignmentActions.append(confirmButton, cancelButton);
+            assignmentPanel.appendChild(assignmentActions);
+
+            const assignmentButton = document.createElement('button');
+            assignmentButton.className = 'button';
+            assignmentButton.type = 'button';
+            assignmentButton.textContent = request.assignedWorkerId ? 'Reassign worker' : 'Assign worker';
+            assignmentButton.setAttribute('aria-expanded', 'false');
+            assignmentButton.setAttribute('aria-controls', assignmentPanel.id);
+            assignmentButton.addEventListener('click', () => {
+                assignmentPanel.hidden = !assignmentPanel.hidden;
+                assignmentButton.setAttribute('aria-expanded', String(!assignmentPanel.hidden));
+                if (!assignmentPanel.hidden) {
+                    workerSelect.focus();
+                }
+            });
+            card.append(assignmentButton, assignmentPanel);
+        }
+    }
+
+    if (canStart) {
+        addRequestAction(card, request, 'Start work', '/start', null,
+            canManageTasks ? () => refreshCurrentRequests(Session.user()) : () => openMyTasks(Session.user()),
+            'Request moved to In Progress.');
+    }
+    if (canResolve) {
+        const resolutionNotes = document.createElement('textarea');
+        resolutionNotes.className = 'field';
+        resolutionNotes.maxLength = 1000;
+        resolutionNotes.rows = 3;
+        resolutionNotes.setAttribute('aria-label', 'Resolution notes');
+        resolutionNotes.placeholder = 'Optional resolution notes';
+        card.appendChild(resolutionNotes);
+        addRequestAction(card, request, 'Resolve request', '/resolve',
+            () => ({ resolutionNotes: resolutionNotes.value }),
+            canManageTasks ? () => refreshCurrentRequests(Session.user()) : () => openMyTasks(Session.user()),
+            'Request resolved.');
+    }
     return card;
+}
+
+function refreshCurrentRequests(user) {
+    return openRequests(user, user.role === 'DEPARTMENT_MANAGER' && requestsTitle.textContent === 'Assign Tasks');
+}
+
+function addRequestAction(card, request, label, endpoint, body, refresh, successMessage) {
+    const button = document.createElement('button');
+    button.className = 'button';
+    button.type = 'button';
+    button.textContent = label;
+    button.addEventListener('click', async () => {
+        button.disabled = true;
+        error.hidden = true;
+        try {
+            await Api.post('/requests/' + request.id + endpoint, body ? body() : undefined);
+            await refresh();
+            requestMessage.className = 'message message-success';
+            requestMessage.textContent = successMessage;
+            requestMessage.hidden = false;
+        } catch (actionError) {
+            error.textContent = actionError.message;
+            error.hidden = false;
+            button.disabled = false;
+        }
+    });
+    card.appendChild(button);
 }
 
 function appendRequestText(container, text) {
     const line = document.createElement('p');
     line.textContent = text;
     container.appendChild(line);
+}
+
+function appendTaskAssignee(container, workerName) {
+    const assignee = document.createElement('div');
+    assignee.className = 'task-assignee';
+    const label = document.createElement('span');
+    label.className = 'task-assignee-label';
+    label.textContent = 'Assigned worker';
+    const value = document.createElement('strong');
+    value.textContent = workerName || 'Unassigned';
+    assignee.append(label, value);
+    container.appendChild(assignee);
 }
 
 document.getElementById('close-requests').addEventListener('click', () => {

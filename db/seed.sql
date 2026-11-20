@@ -72,7 +72,7 @@ INSERT INTO event_registrations (user_id, event_id) VALUES
   (1, 4),
   (1, 9);
 
--- Part 2 adds: ~8 service requests in every status, a second worker.
+
 -- Demo service requests for Alex Rivera, covering every request status.
 -- Department IDs match the demo departments above; eligible requests receive tasks below.
 INSERT INTO service_requests
@@ -99,7 +99,7 @@ VALUES
    NULL, 'Graffiti removed and the wall repainted.', DATE_SUB(NOW(), INTERVAL 12 DAY),
    DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
   (7, 1, 'NOISE', 'Repeated noise complaint with no time or location details.',
-   'Location not provided', 'REJECTED', 1,
+   'Location not provided', 'REJECTED', NULL,
    'Please submit the location and approximate time of the noise.', NULL,
    DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 5 DAY), NULL),
   (8, 1, 'STREETLIGHT', 'The pedestrian crossing light is not illuminating.',
@@ -146,14 +146,48 @@ INSERT INTO notifications (notification_id, user_id, type, message, related_id, 
   (15, 1, 'ANNOUNCEMENT',    'New announcement: Library Hours Extended', 1, TRUE,  DATE_SUB(NOW(), INTERVAL 3 DAY)),
   (16, 1, 'EMERGENCY_ALERT', 'Emergency alert: Excessive Heat Warning',  2, FALSE, DATE_SUB(NOW(), INTERVAL 6 HOUR));
 
+-- Part 2 adds: events, request workflows, and a second worker.
+-- Part 3 adds: task assignments, transit routes, and sample flagged content.
+
+-- Six sample flags cover each moderation status and all supported content types.
+-- Removed flags also hide their content, matching the administrator moderation behavior.
+UPDATE announcements SET is_deleted = TRUE WHERE announcement_id = 1;
+UPDATE service_requests SET is_hidden = TRUE WHERE request_id = 7;
+
+INSERT INTO flags (flag_id, content_type, content_id, reason, flagged_by, status, created_at) VALUES
+  (1, 'ANNOUNCEMENT', 2, 'Please verify the listed cooling center locations.', 1, 'OPEN',
+   DATE_SUB(NOW(), INTERVAL 25 MINUTE)),
+  (2, 'REQUEST', 3, 'The request includes potentially identifying details.', 3, 'OPEN',
+   DATE_SUB(NOW(), INTERVAL 20 MINUTE)),
+  (3, 'EVENT', 1, 'The event details may be misleading.', 1, 'DISMISSED',
+   DATE_SUB(NOW(), INTERVAL 2 DAY)),
+  (4, 'REQUEST', 4, 'The request appears to describe a routine maintenance issue.', 4, 'DISMISSED',
+   DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (5, 'REQUEST', 7, 'The request is missing actionable information.', 3, 'REMOVED',
+   DATE_SUB(NOW(), INTERVAL 4 DAY)),
+  (6, 'ANNOUNCEMENT', 1, 'This announcement is no longer accurate.', 4, 'REMOVED',
+   DATE_SUB(NOW(), INTERVAL 5 DAY));
+
+-- Flag-submission notices are delivered to the city administrator; related_id is the flag ID.
+INSERT INTO notifications (notification_id, user_id, type, message, related_id, is_read, created_at) VALUES
+  (17, 2, 'FLAG_SUBMITTED', 'New content flag #1: Excessive Heat Warning', 1, FALSE,
+   DATE_SUB(NOW(), INTERVAL 25 MINUTE)),
+  (18, 2, 'FLAG_SUBMITTED', 'New content flag #2: GRAFFITI - Central Library, west wall', 2, FALSE,
+   DATE_SUB(NOW(), INTERVAL 20 MINUTE)),
+  (19, 2, 'FLAG_SUBMITTED', 'New content flag #3: River Park Cleanup - NORTH', 3, TRUE,
+   DATE_SUB(NOW(), INTERVAL 2 DAY)),
+  (20, 2, 'FLAG_SUBMITTED', 'New content flag #4: POTHOLE - Rural Rd and Southern Ave', 4, TRUE,
+   DATE_SUB(NOW(), INTERVAL 3 DAY)),
+  (21, 2, 'FLAG_SUBMITTED', 'New content flag #5: NOISE - Location not provided', 5, TRUE,
+   DATE_SUB(NOW(), INTERVAL 4 DAY)),
+  (22, 2, 'FLAG_SUBMITTED', 'New content flag #6: Library Hours Extended', 6, TRUE,
+   DATE_SUB(NOW(), INTERVAL 5 DAY));
+
 -- Task assignments are delivered to each currently assigned worker.
 INSERT INTO notifications (notification_id, user_id, type, message, related_id, is_read, created_at) VALUES
-  (17, 4, 'TASK_ASSIGNED', 'You have been assigned to request #4 (POTHOLE).', 4, FALSE,
+  (23, 4, 'TASK_ASSIGNED', 'You have been assigned to request #4 (POTHOLE).', 4, FALSE,
    DATE_SUB(NOW(), INTERVAL 2 DAY)),
-  (18, 6, 'TASK_ASSIGNED', 'You have been assigned to request #5 (WATER_LEAK).', 5, FALSE,
+  (24, 6, 'TASK_ASSIGNED', 'You have been assigned to request #5 (WATER_LEAK).', 5, FALSE,
    DATE_SUB(NOW(), INTERVAL 3 DAY)),
-  (19, 4, 'TASK_ASSIGNED', 'You have been assigned to request #8 (STREETLIGHT).', 8, FALSE,
+  (25, 4, 'TASK_ASSIGNED', 'You have been assigned to request #8 (STREETLIGHT).', 8, FALSE,
    DATE_SUB(NOW(), INTERVAL 3 DAY));
-
--- Part 2 adds: events, request workflows, and a second worker.
--- Part 3 adds: task assignments, transit routes, and a couple of open flags.

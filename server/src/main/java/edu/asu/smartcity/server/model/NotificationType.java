@@ -6,5 +6,6 @@ public enum NotificationType {
     EMERGENCY_ALERT,
     REQUEST_STATUS,
     TASK_ASSIGNED,
-    EVENT_CANCELLED
+    EVENT_CANCELLED,
+    FLAG_SUBMITTED
 }

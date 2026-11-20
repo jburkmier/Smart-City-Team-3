@@ -48,23 +48,20 @@ public class RequestService {
     }
 
     public RequestDto create(RequestCreateRequest request, int citizenId) throws SQLException {
-        Map<String, String> errors = new LinkedHashMap<>();
-        if (request == null) {
-            errors.put("request", "Request body is required.");
-        } else {
-            if (request.type() == null) {
-                errors.put("type", "Type is required.");
-            }
-            validateText(request.description(), "description", 2000, errors);
-            validateText(request.location(), "location", 255, errors);
-        }
-        if (!errors.isEmpty()) {
-            throw new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.", errors);
-        }
-
-        Request newRequest = new Request(citizenId, request.type(), request.description().trim(),
-                request.location().trim(), new SubmittedState());
+        RequestCreateRequest valid = validateContent(request);
+        Request newRequest = new Request(citizenId, valid.type(), valid.description(),
+                valid.location(), new SubmittedState());
         return requests.create(newRequest);
+    }
+
+    /** Updates request content without changing its workflow state or assigned staff. */
+    public RequestDto updateContent(int requestId, RequestCreateRequest request) throws SQLException {
+        RequestCreateRequest valid = validateContent(request);
+        if (!requests.updateContent(requestId, valid.type(), valid.description(), valid.location())) {
+            throw new ApiException(404, "NOT_FOUND", "Request not found.");
+        }
+        return requests.findById(requestId).orElseThrow(
+                () -> new SQLException("Updated request could not be loaded."));
     }
 
     public RequestDto review(int requestId) throws SQLException {
@@ -256,6 +253,23 @@ public class RequestService {
         } else if (value.trim().length() > maximumLength) {
             errors.put(field, "Must be at most " + maximumLength + " characters.");
         }
+    }
+
+    private static RequestCreateRequest validateContent(RequestCreateRequest request) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        if (request == null) {
+            errors.put("request", "Request body is required.");
+        } else {
+            if (request.type() == null) {
+                errors.put("type", "Type is required.");
+            }
+            validateText(request.description(), "description", 2000, errors);
+            validateText(request.location(), "location", 255, errors);
+        }
+        if (!errors.isEmpty()) {
+            throw new ApiException(400, "VALIDATION_FAILED", "Some fields are invalid.", errors);
+        }
+        return new RequestCreateRequest(request.type(), request.description().trim(), request.location().trim());
     }
 
     private RequestDto findRequest(int requestId) throws SQLException {

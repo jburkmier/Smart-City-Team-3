@@ -39,10 +39,6 @@ public class Request {
         return state;
     }
 
-    public void changeState(RequestState state) {
-        this.state = state;
-    }
-
     public void review() {
         state = state.review();
     }

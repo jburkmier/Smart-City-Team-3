@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.asu.smartcity.server.dao.AnnouncementDAO;
 import edu.asu.smartcity.server.dao.DepartmentDAO;
 import edu.asu.smartcity.server.dao.EventDAO;
+import edu.asu.smartcity.server.dao.FlagDAO;
 import edu.asu.smartcity.server.dao.NotificationDAO;
 import edu.asu.smartcity.server.dao.RequestDAO;
 import edu.asu.smartcity.server.dao.TaskDAO;
@@ -16,6 +17,7 @@ import edu.asu.smartcity.server.service.AnnouncementService;
 import edu.asu.smartcity.server.service.AuthService;
 import edu.asu.smartcity.server.service.DepartmentService;
 import edu.asu.smartcity.server.service.EventService;
+import edu.asu.smartcity.server.service.FlagService;
 import edu.asu.smartcity.server.service.NotificationService;
 import edu.asu.smartcity.server.service.RequestService;
 import edu.asu.smartcity.server.session.SessionManager;
@@ -25,6 +27,7 @@ import edu.asu.smartcity.server.web.AuthController;
 import edu.asu.smartcity.server.web.AuthGuard;
 import edu.asu.smartcity.server.web.DepartmentController;
 import edu.asu.smartcity.server.web.EventController;
+import edu.asu.smartcity.server.web.FlagController;
 import edu.asu.smartcity.server.web.HealthController;
 import edu.asu.smartcity.server.web.NotificationController;
 import edu.asu.smartcity.server.web.RequestController;
@@ -71,6 +74,7 @@ public class ServerApp {
         AuthController authController = new AuthController(authService, authGuard);
         EventDAO eventDAO = new EventDAO(database);
         EventController eventController = new EventController(new EventService(eventDAO), authGuard);
+        AnnouncementDAO announcementDAO = new AnnouncementDAO(database);
         RequestController requestController = new RequestController(requestService, authGuard);
         DepartmentDAO departmentDAO = new DepartmentDAO(database);
         DepartmentController departmentController =
@@ -78,7 +82,9 @@ public class ServerApp {
         NotificationController notificationController =
                 new NotificationController(notificationService, authGuard);
         AnnouncementController announcementController = new AnnouncementController(
-                new AnnouncementService(new AnnouncementDAO(database), userDAO, notificationService), authGuard);
+                new AnnouncementService(announcementDAO, userDAO, notificationService), authGuard);
+        FlagController flagController = new FlagController(
+                new FlagService(new FlagDAO(database), userDAO, notificationService), authGuard);
 
         Javalin app = Javalin.create(config -> {
             config.staticFiles.add("/public", Location.CLASSPATH);
@@ -93,6 +99,10 @@ public class ServerApp {
         app.delete("/api/events/{id}", eventController::cancel);
         app.post("/api/events/{id}/registration", eventController::register);
         app.delete("/api/events/{id}/registration", eventController::unregister);
+        app.post("/api/flags", flagController::create);
+        app.get("/api/flags", flagController::list);
+        app.post("/api/flags/{id}/dismiss", flagController::dismiss);
+        app.post("/api/flags/{id}/remove", flagController::remove);
         app.get("/api/me/registrations", eventController::registrations);
         app.get("/api/departments", departmentController::list);
         app.get("/api/departments/{id}/workers", departmentController::workers);
@@ -103,6 +113,7 @@ public class ServerApp {
         app.get("/api/me/requests", requestController::mine);
         app.get("/api/requests", requestController::list);
         app.post("/api/requests", requestController::create);
+        app.put("/api/requests/{id}", requestController::update);
         app.post("/api/requests/{id}/review", requestController::review);
         app.post("/api/requests/{id}/assign", requestController::assign);
         app.post("/api/requests/{id}/reject", requestController::reject);
@@ -115,6 +126,7 @@ public class ServerApp {
         app.post("/api/me/notifications/{id}/read", notificationController::markRead);
         app.get("/api/announcements", announcementController::list);
         app.post("/api/announcements", announcementController::create);
+        app.put("/api/announcements/{id}", announcementController::update);
         app.delete("/api/announcements/{id}", announcementController::delete);
 
         // Javalin throws NotFoundResponse when no route or page matches. Unknown /api paths get

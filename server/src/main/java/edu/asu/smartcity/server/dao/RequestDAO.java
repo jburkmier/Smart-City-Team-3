@@ -75,6 +75,32 @@ public class RequestDAO {
         return query(" WHERE r.request_id = ?", List.of(requestId)).stream().findFirst();
     }
 
+    /** Updates only editable content fields, preserving workflow, assignment, and ownership. */
+    public boolean updateContent(int requestId, RequestType type, String description, String location)
+            throws SQLException {
+        String sql = """
+                UPDATE service_requests
+                SET type = ?, description = ?, location = ?
+                WHERE request_id = ? AND is_hidden = FALSE
+                """;
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, type.name());
+            stmt.setString(2, description);
+            stmt.setString(3, location);
+            stmt.setInt(4, requestId);
+            stmt.executeUpdate();
+        }
+        try (Connection conn = database.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT 1 FROM service_requests WHERE request_id = ? AND is_hidden = FALSE")) {
+            stmt.setInt(1, requestId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     /** Changes status only if the request still has the status previously read by the caller. */
     public boolean updateStatus(int requestId, RequestStatus expectedStatus, RequestStatus nextStatus)
             throws SQLException {
